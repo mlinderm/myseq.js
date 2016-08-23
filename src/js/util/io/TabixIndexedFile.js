@@ -49,7 +49,7 @@ import jBinary from 'jbinary';
 import pako from 'pako/lib/inflate';
 import {TextDecoder} from 'text-encoding';
 
-import {AbstractFileReader} from './FileReaders';
+import AbstractFileReader from './AbstractFileReader';
 
 type PakoResult = {
   err: number;
@@ -348,30 +348,29 @@ class TabixIndexedFile {
 	 * query/iteration.
 	 */
 	records(ctg: string, pos: number, end: number) : Q.Promise<Array<String>> {
-		return this._overlapFunction.then(overlapFunction => {
-			return this._chunksForInterval(ctg, pos, end).then(chunks => {
-				var decoder = new TextDecoder('utf-8');  // Tabix'd files are ASCII
+		var chunksPromise = this._chunksForInterval(ctg, pos, end)
+		return Q.spread([chunksPromise, this._overlapFunction], (chunks, overlapFunction) => {
+			var decoder = new TextDecoder('utf-8');  // Tabix'd files are ASCII
 		
-				// Read data for each chunk to produce array-of-array of decoded lines 
-				var allLines = Q.all(_.map(chunks, chunk => {
-    			var cOffset = chunk.beg.coffset;
-					var cBytes  = chunk.end.coffset - chunk.beg.coffset;
-					return this._source.bytes(cOffset, cBytes).then(buffer => {
-						var uBuffer = inflateGZip(buffer);
-					
-						var uOffset = chunk.beg.uoffset; // Start decoding at chunk's uncompressed offset
-						var uView = new Uint8Array(uBuffer, uOffset);
-					
-						return _.chain(decoder.decode(uView).split('\n'))
-							.reject(line => line.length === 0)
-							.filter(line => overlapFunction(line, ctg, pos, end))
-							.value();
-					});
-				}));
+			// Read data for each chunk to produce array-of-array of decoded lines 
+			var allLines = Q.all(_.map(chunks, chunk => {
+    		var cOffset = chunk.beg.coffset;
+				var cBytes  = chunk.end.coffset - chunk.beg.coffset;
+				return this._source.bytes(cOffset, cBytes).then(buffer => {
+					var uBuffer = inflateGZip(buffer);
 				
-				return allLines.then(lines => {
-					return _.flatten(lines);	
+					var uOffset = chunk.beg.uoffset; // Start decoding at chunk's uncompressed offset
+					var uView = new Uint8Array(uBuffer, uOffset);
+				
+					return _.chain(decoder.decode(uView).split('\n'))
+						.reject(line => line.length === 0)
+						.filter(line => overlapFunction(line, ctg, pos, end))
+						.value();
 				});
+			}));
+			
+			return allLines.then(lines => {
+				return _.flatten(lines);	
 			});
 		});
 	}
