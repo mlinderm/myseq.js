@@ -2,11 +2,6 @@
 
 set -o errexit
 
-# Test in node
-echo "Testing in Node..."
-mocha --reporter spec dist/tests.js
-
-# Browser testing
 # Adapted from https://github.com/hammerlab/pileup.js
 
 # Run http-server and save its PID
@@ -20,5 +15,10 @@ trap finish EXIT
 # Avoid race condition on launch of http-server
 sleep 0.1
 
+# Test in node
+echo "Testing in Node..."
+mocha --reporter spec dist/tests.js
+
+# Test in browser
 echo "Testing on phantomjs..."
 mocha-phantomjs http://localhost:8081/test/runner.html "$@"
