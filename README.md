@@ -1,6 +1,5 @@
 # myseq.js
 myseg.js is a tool for interactive analysis of personal genomes
 
-## License
 
-pileup.js is [Apache v2](/LICENSE) licensed.
+https://github.com/RisingStack/react-way-getting-started/blob/master/package.json
