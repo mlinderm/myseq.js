@@ -6,15 +6,33 @@
 import React from 'react';
 import ReactDOM from 'react-dom';
 
-import VCFVariantSource from '../../lib/js/io/VCFSource';
+import VCFSource from '../../lib/js/io/VCFSource';
+
+import LoadVCFFile from './LoadVCFFile';
+import VariantQuery from './VariantQuery'; 
 
 class App extends React.Component {
 	constructor(props: Object) {
 		super(props);
+		this.state = {
+			source: null
+		};
+	}
+
+	componentDidMount() {
+		// TODO: Initialize source if included in the URL
 	}
 
 	render(): any {
-		return (<p>Show some variants</p>);
+		if (this.state.source) {
+			return (<VariantQuery source={this.state.source} />);
+		} else {
+			return (<LoadVCFFile updateSource={ this.updateSource.bind(this) } />);
+		}
+	}
+
+	updateSource(source: VCFSource) {
+		this.setState({ source: source });
 	}
 }
 

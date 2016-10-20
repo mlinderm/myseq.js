@@ -17,6 +17,10 @@ class LocalFileReader extends AbstractFileReader {
 		this.size = file.size;
 	}
 
+	name() : string {
+		return this.file.name;
+	}
+
 	bytes(start: number = 0, length?: number): Q.Promise<ArrayBuffer> {
 		var deferred = Q.defer();
 		

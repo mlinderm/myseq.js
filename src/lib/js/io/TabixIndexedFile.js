@@ -119,10 +119,11 @@ function concatArrayBuffers(buffers: ArrayBuffer[]): ArrayBuffer {
 
 /**
  * Inflate one or more gzip blocks in the buffer concatenating the results,
- * mirroring the behavior of gzip(1).
+ * mirroring the behavior of gzip(1). Use lastBlockStart=0 to read a single
+ * block.
  */
-function inflateGZip(buffer: ArrayBuffer): ArrayBuffer {
-  return concatArrayBuffers(inflateConcatenatedGZip(buffer).map(x => x.buffer));
+function inflateGZip(buffer: ArrayBuffer, lastBlockStart?: number): ArrayBuffer {
+  return concatArrayBuffers(inflateConcatenatedGZip(buffer, lastBlockStart).map(x => x.buffer));
 }
 
 class VirtualOffset {
@@ -356,12 +357,15 @@ class TabixIndexedFile {
 			var allLines = Q.all(_.map(chunks, chunk => {
     		var cOffset = chunk.beg.coffset;
 				var cBytes  = chunk.end.coffset - chunk.beg.coffset;
-				return this._source.bytes(cOffset, cBytes).then(buffer => {
-					var uBuffer = inflateGZip(buffer);
+				
+				// At a minimum read at least one compressed block (which must be less than 64k)
+				return this._source.bytes(cOffset, (cBytes == 0 ? 65536 : cBytes)).then(buffer => {
+					var uBuffer = (cBytes == 0) ? inflateGZip(buffer, 0 /* Read single block*/) : inflateGZip(buffer);
 				
 					var uOffset = chunk.beg.uoffset; // Start decoding at chunk's uncompressed offset
-					var uView = new Uint8Array(uBuffer, uOffset);
-				
+					var uBytes  = (cBytes == 0 ? chunk.end.uoffset : uBuffer.byteLength) - chunk.beg.uoffset;
+					var uView = new Uint8Array(uBuffer, uOffset, uBytes);
+					
 					return _.chain(decoder.decode(uView).split('\n'))
 						.reject(line => line.length === 0)
 						.filter(line => overlapFunction(line, ctg, pos, end))
