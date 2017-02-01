@@ -44,6 +44,8 @@
     "jdataview": "^2.5.0",
     "pako": "^1.0.3",
     "q": "^1.4.1",
+    "react": "^15.4.2",
+    "react-dom": "^15.4.2",
     "text-encoding": "^0.6.0",
     "underscore": "^1.8.3"
   },
