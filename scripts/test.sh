@@ -20,5 +20,11 @@ echo "Testing in Node..."
 mocha --reporter spec dist/tests.js
 
 # Test in browser
-echo "Testing on phantomjs..."
-mocha-phantomjs http://localhost:8081/test/runner.html "$@"
+PHANTOM_BINARY="$(npm config get prefix)/bin/phantomjs"
+if [[ -x "$PHANTOM_BINARY" ]] && "$PHANTOM_BINARY" -v | grep -q "^2" ; then
+    echo "Testing on phantomjs version $("$PHANTOM_BINARY" -v)..."
+    mocha-phantomjs -p "$PHANTOM_BINARY" http://localhost:8081/test/runner.html "$@"
+else
+    echo "Testing on builtin phantomjs..."
+    mocha-phantomjs http://localhost:8081/test/runner.html "$@"
+fi
