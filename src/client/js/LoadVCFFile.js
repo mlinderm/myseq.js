@@ -4,6 +4,7 @@
 'use strict';
 
 import React from 'react';
+import PropTypes from 'prop-types';
 
 import { LocalFileReader, RemoteFileReader } from '../../lib/js/io/FileReaders-browser';  
 import TabixIndexedFile from '../../lib/js/io/TabixIndexedFile';
@@ -28,7 +29,7 @@ class VCFLink extends React.Component {
 }
 
 VCFLink.propTypes = {
-	updateAndSubmitURL: React.PropTypes.func
+	updateAndSubmitURL: PropTypes.func
 };
 
 
@@ -117,7 +118,7 @@ class LoadVCFFile extends React.Component {
 }
 
 LoadVCFFile.propTypes = {
-	updateSource: React.PropTypes.func
+	updateSource: PropTypes.func
 };
 
 

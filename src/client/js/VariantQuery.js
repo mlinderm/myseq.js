@@ -4,6 +4,7 @@
 'use strict';
 
 import React from 'react';
+import PropTypes from 'prop-types';
 
 import VCFSource from '../../lib/js/io/VCFSource';
 
@@ -37,7 +38,7 @@ class VariantQuery extends React.Component {
 }
 
 VariantQuery.propTypes = {
-	source: React.PropTypes.instanceOf(VCFSource)
+	source: PropTypes.instanceOf(VCFSource)
 };
 
 export default VariantQuery;

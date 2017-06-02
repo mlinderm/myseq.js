@@ -12,8 +12,8 @@ import LoadVCFFile from './LoadVCFFile';
 import VariantQuery from './VariantQuery'; 
 
 class App extends React.Component {
-	constructor(props: Object) {
-		super(props);
+	constructor() {
+		super();
 		this.state = {
 			source: null
 		};
