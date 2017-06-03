@@ -52,27 +52,27 @@ import {TextDecoder} from 'text-encoding';
 import AbstractFileReader from './AbstractFileReader';
 
 type PakoResult = {
-  err: number;
-  msg: string;
-  buffer: ?ArrayBuffer;
-  total_in: number;
+    err: number;
+    msg: string;
+    buffer: ?ArrayBuffer;
+    total_in: number;
 }
 
 type InflatedBlock = {
-  offset: number;
-  compressedLength: number;
-  buffer: ArrayBuffer;
+    offset: number;
+    compressedLength: number;
+    buffer: ArrayBuffer;
 }
 
 function inflateOneGZipBlock(buffer, position): PakoResult {
-  var inflator = new pako.Inflate();
-  inflator.push(buffer.slice(position));
-  return {
-    err: inflator.err,
-    msg: inflator.msg,
-    buffer: inflator.result ? inflator.result.buffer : null,
-    total_in: inflator.strm.total_in
-  };
+    var inflator = new pako.Inflate();
+    inflator.push(buffer.slice(position));
+    return {
+        err: inflator.err,
+        msg: inflator.msg,
+        buffer: inflator.result ? inflator.result.buffer : null,
+        total_in: inflator.strm.total_in
+    };
 }
 
 /**
@@ -81,39 +81,39 @@ function inflateOneGZipBlock(buffer, position): PakoResult {
  * @param lastBlockStart Stop decompression at this byte offset
  */
 function inflateConcatenatedGZip(buffer: ArrayBuffer, lastBlockStart?: number): InflatedBlock[] {
-	var position = 0, blocks = [];
-  if (lastBlockStart === undefined) {
-    lastBlockStart = buffer.byteLength;
-  }
-  do {
-	  var result = inflateOneGZipBlock(buffer, position);
-	  if (result.err) {
-		  throw 'Gzip error: ' + result.msg;
+    var position = 0, blocks = [];
+    if (lastBlockStart === undefined) {
+        lastBlockStart = buffer.byteLength;
     }
-    if (result.buffer) {
-      blocks.push({
-        offset: position,
-        compressedLength: result.total_in,
-        buffer: result.buffer
-      });
-    }
-    position += result.total_in;
-  } while (position <= lastBlockStart && position < buffer.byteLength);
-  
-  return blocks;
+    do {
+        var result = inflateOneGZipBlock(buffer, position);
+        if (result.err) {
+            throw 'Gzip error: ' + result.msg;
+        }
+        if (result.buffer) {
+            blocks.push({
+                offset: position,
+                compressedLength: result.total_in,
+                buffer: result.buffer
+            });
+        }
+        position += result.total_in;
+    } while (position <= lastBlockStart && position < buffer.byteLength);
+
+    return blocks;
 }
 
 function concatArrayBuffers(buffers: ArrayBuffer[]): ArrayBuffer {
-  var totalBytes = buffers.map(b => b.byteLength).reduce((a, b) => a + b, 0);
-  var output = new Uint8Array(totalBytes);
-  
-  var position = 0;
-  buffers.forEach(buffer => {
-    output.set(new Uint8Array(buffer), position);
-    position += buffer.byteLength;
-  });
-  
-  return output.buffer;
+    var totalBytes = buffers.map(b => b.byteLength).reduce((a, b) => a + b, 0);
+    var output = new Uint8Array(totalBytes);
+
+    var position = 0;
+    buffers.forEach(buffer => {
+        output.set(new Uint8Array(buffer), position);
+        position += buffer.byteLength;
+    });
+
+    return output.buffer;
 }
 
 
@@ -123,7 +123,7 @@ function concatArrayBuffers(buffers: ArrayBuffer[]): ArrayBuffer {
  * block.
  */
 function inflateGZip(buffer: ArrayBuffer, lastBlockStart?: number): ArrayBuffer {
-  return concatArrayBuffers(inflateConcatenatedGZip(buffer, lastBlockStart).map(x => x.buffer));
+    return concatArrayBuffers(inflateConcatenatedGZip(buffer, lastBlockStart).map(x => x.buffer));
 }
 
 class VirtualOffset {
@@ -149,24 +149,24 @@ type Chunk = {
 // from https://github.com/jsa-aerial/JS-Binary-VCF-Tabix
 var TABIX_FORMAT = {
 
-	'jBinary.all': 'tabix',
-  'jBinary.littleEndian': true,
+    'jBinary.all': 'tabix',
+    'jBinary.littleEndian': true,
 
-	virtual_offset : jBinary.Template({
-		setParams: function () {
-      this.baseType = {
-        uoffset: 'uint16',
-        coffset_values: ['array', 'uint16', 3]
-      };
-    },
-		read: function() {
-   		var raw = this.baseRead();
-			return new VirtualOffset(
-				raw.coffset_values[0] + raw.coffset_values[1] * 65536 + raw.coffset_values[2] * 4294967296,
-				raw.uoffset
-			);	
-		}
-	}),
+    virtual_offset : jBinary.Template({
+        setParams: function () {
+            this.baseType = {
+                uoffset: 'uint16',
+                coffset_values: ['array', 'uint16', 3]
+            };
+        },
+        read: function() {
+            var raw = this.baseRead();
+            return new VirtualOffset(
+                raw.coffset_values[0] + raw.coffset_values[1] * 65536 + raw.coffset_values[2] * 4294967296,
+                raw.uoffset
+            );	
+        }
+    }),
 
 	header: {
 		magic:   ['string', 4],
@@ -209,40 +209,40 @@ var TABIX_FORMAT = {
 // Region-to-bins, as defined in http://samtools.github.io/hts-specs/tabix.pdf,
 // adapted from https://github.com/hammerlab/pileup.js
 function reg2bins(beg, end) {
-  var k, list = [];
-  --end;
-  list.push(0);
-  for (k =    1 + (beg>>26); k <=    1 + (end>>26); ++k) list.push(k);
-  for (k =    9 + (beg>>23); k <=    9 + (end>>23); ++k) list.push(k);
-  for (k =   73 + (beg>>20); k <=   73 + (end>>20); ++k) list.push(k);
-  for (k =  585 + (beg>>17); k <=  585 + (end>>17); ++k) list.push(k);
-  for (k = 4681 + (beg>>14); k <= 4681 + (end>>14); ++k) list.push(k);
-  return list;
+    var k, list = [];
+    --end;
+    list.push(0);
+    for (k =    1 + (beg>>26); k <=    1 + (end>>26); ++k) list.push(k);
+    for (k =    9 + (beg>>23); k <=    9 + (end>>23); ++k) list.push(k);
+    for (k =   73 + (beg>>20); k <=   73 + (end>>20); ++k) list.push(k);
+    for (k =  585 + (beg>>17); k <=  585 + (end>>17); ++k) list.push(k);
+    for (k = 4681 + (beg>>14); k <= 4681 + (end>>14); ++k) list.push(k);
+    return list;
 }
 
 function optimizeChunks(chunks: Array<Chunk>, minimumOffset: VirtualOffset): Array<Chunk> {
-	chunks.sort((l, r) => {
-    return l.beg.compareTo(r.beg) || l.end.compareTo(r.end);
-  });
+    chunks.sort((l, r) => {
+        return l.beg.compareTo(r.beg) || l.end.compareTo(r.end);
+    });
 
-	var newChunks = [];
-	for(let chunk of chunks) {
-		if (chunk.end.compareTo(minimumOffset) < 0) {
-			// Linear index optimization
-			continue;
-		}
-		if (newChunks.length === 0) {
-			newChunks.push(chunk);
-		} else {
-			// Merge overlapping or adjacent chunks
-			var lastChunk = newChunks[newChunks.length - 1];
-    	if (chunk.beg.compareTo(lastChunk.end) > 0) {
-      	newChunks.push(chunk);
-    	} else {
-        lastChunk.end = chunk.end;
-    	}
-		}
-	}
+    var newChunks = [];
+    for(let chunk of chunks) {
+        if (chunk.end.compareTo(minimumOffset) < 0) {
+            // Linear index optimization
+            continue;
+        }
+        if (newChunks.length === 0) {
+            newChunks.push(chunk);
+        } else {
+            // Merge overlapping or adjacent chunks
+            var lastChunk = newChunks[newChunks.length - 1];
+            if (chunk.beg.compareTo(lastChunk.end) > 0) {
+                newChunks.push(chunk);
+            } else {
+                lastChunk.end = chunk.end;
+            }
+        }
+    }
 
 	return newChunks;
 }
@@ -275,10 +275,12 @@ function vcfLineInRegion(line: string, ctg: string, pos: number, end: number) {
 class TabixIndexedFile {
 	_source: AbstractFileReader;
 	_contigs: Q.Promise<Map<string,Map<number,Object>>>;
-	_overlapFunction: Q.Promse<{(line: string, ctg: string, pos: number, end: number): boolean;}>;
+	_overlapFunction: Q.Promise<{(line: string, ctg: string, pos: number, end: number): boolean;}>;
+    _commentCharacter: Q.Promise<string>;
 
 	constructor(dataSource: AbstractFileReader, indexSource: AbstractFileReader) {
 		var overlapFunction = Q.defer();
+        var commentCharacter = Q.defer();
 		this._source = dataSource; 
 		this._contigs = indexSource.bytes().then(buffer => {
 			var uncompressedIndex = inflateGZip(buffer);
@@ -287,7 +289,7 @@ class TabixIndexedFile {
 				TABIX_FORMAT
 			);
 			var index = parser.readAll();
-				
+
 			// Set overlap function based on index header
 			var format = index.head.format;
 			switch (format) {
@@ -299,25 +301,29 @@ class TabixIndexedFile {
 					break;
 			}
 
+            // Extract comment character
+            commentCharacter.resolve(String.fromCharCode(index.head.meta));
+
 			// Convert tabix names string to array
 			index.head.names = index.head.names.replace(/\0+$/, '').split('\0');	
 			
 			// Create hash of contig names with hash of bins
 			var contigs = new Map();
-   		for(var r=0; r<index.head.n_ref; ++r) {
-				var bins = new Map();
-				var contig = index.indexseq[r];
-				for (var b=0; b<contig.n_bin; ++b) {
-					var bin = contig.bins[b];
-					bins.set(bin.bin, bin.chunks);		
-				}
-				contig.bins = bins;
+            for (var r=0; r<index.head.n_ref; ++r) {
+                var bins = new Map();
+                var contig = index.indexseq[r];
+                for (var b=0; b<contig.n_bin; ++b) {
+                    var bin = contig.bins[b];
+                    bins.set(bin.bin, bin.chunks);		
+                }
+                contig.bins = bins;
 
-				contigs.set(index.head.names[r], contig);
-			}
-			return contigs;
-		});
-		this._overlapFunction = overlapFunction.promise;
+                contigs.set(index.head.names[r], contig);
+            }
+            return contigs;
+        });
+        this._overlapFunction = overlapFunction.promise;
+        this._commentCharacter = commentCharacter.promise;
 	}
 
 	_chunksForInterval(ctg: string, pos: number, end: number) : Q.Promise<Array<Chunk>> {
@@ -342,12 +348,31 @@ class TabixIndexedFile {
 		});
 	}
 
-	/**
-	 * May return records outside range that need to be filtered
-	 * by format-aware wrappers, e.g. VCF. This behavior is different
-	 * than htslib which incorporates format aware region filtering into
-	 * query/iteration.
-	 */
+    _fetchHeader(offset) :  Q.Promise<Array<String>> {
+        // Read up to a single compressed block (no more than 64k)
+        return Q.spread([this._source.bytes(offset, 65536), this._commentCharacter], (buffer, comment) => {
+            var uBuffer = inflateGZip(buffer, 0 /* Read single block*/);
+            var uView = new Uint8Array(uBuffer, 0, uBuffer.byteLength)
+
+            var decoder = new TextDecoder('utf-8');  // Tabix'd files are ASCII
+            var lines = decoder.decode(uView).split('\n');
+            if (_.last(lines).startsWith(comment)) {
+                // Need to fetch additional chunks
+                return this._fetchHeader(offset + 65536).then(nextLines => {
+                    lines = lines.concat(nextLines);   
+                });
+            } else {
+                var last = _.findLastIndex(lines, line => line.startsWith(comment));
+                lines.splice(last + 1);
+                return lines;
+            }          
+        });
+    }
+
+    header() : Q.Promise<Array<String>> {
+        return this._fetchHeader(0);       
+    }
+
 	records(ctg: string, pos: number, end: number) : Q.Promise<Array<String>> {
 		var chunksPromise = this._chunksForInterval(ctg, pos, end)
 		return Q.spread([chunksPromise, this._overlapFunction], (chunks, overlapFunction) => {
@@ -355,7 +380,7 @@ class TabixIndexedFile {
 		
 			// Read data for each chunk to produce array-of-array of decoded lines 
 			var allLines = Q.all(_.map(chunks, chunk => {
-    		var cOffset = chunk.beg.coffset;
+    		    var cOffset = chunk.beg.coffset;
 				var cBytes  = chunk.end.coffset - chunk.beg.coffset;
 				
 				// At a minimum read at least one compressed block (which must be less than 64k)

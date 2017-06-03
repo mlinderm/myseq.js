@@ -80,4 +80,11 @@ describe('TabixIndexedFile', function() {
 	});
 
 	// TODO: Test filtering on structural variants
+    
+    it('should return header lines', function() {
+        var indexedFile = getTestFile();
+        return indexedFile.header().then(header => {
+            expect(header.length).to.equal(7);
+        });
+    });
 });
