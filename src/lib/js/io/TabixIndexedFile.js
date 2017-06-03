@@ -348,7 +348,7 @@ class TabixIndexedFile {
 		});
 	}
 
-    _fetchHeader(offset) :  Q.Promise<Array<String>> {
+    _fetchHeader(offset: number) :  Q.Promise<Array<String>> {
         // Read up to a single compressed block (no more than 64k)
         return Q.spread([this._source.bytes(offset, 65536), this._commentCharacter], (buffer, comment) => {
             var uBuffer = inflateGZip(buffer, 0 /* Read single block*/);

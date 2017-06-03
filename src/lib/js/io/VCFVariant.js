@@ -7,25 +7,27 @@
 class VCFVariant {
 	
 	_line: string;
-	_coreFields: Array<string>;
+	_fields: Array<string>;
 
 
 	contig: string;
 	position: number;
-	ref: string
+	ref: string;
+    alt: Array<string>;
 
 
-	constructor(line: string) {
+	constructor(line: string, numFields: number = 8) {
 		this._line = line;
 		
-		this._coreFields = this._line.split("\t",8);
-		this.contig   = this._coreFields[0];
-		this.position = Number(this._coreFields[1]);
-		this.ref      = this._coreFields[3];
+		this._fields  = this._line.split('\t', numFields);
+		this.contig   = this._fields[0];
+		this.position = Number(this._fields[1]);
+		this.ref      = this._fields[3];
+        this.alt      = this._fields[4].split(',');
 	}
 
 	toString() {
-		return `${this.contig}:${this.position}${this.ref}>${this._coreFields[4]}`
+		return `${this.contig}:${this.position}${this.ref}>${this._fields[4]}`
 	}
 
 };
