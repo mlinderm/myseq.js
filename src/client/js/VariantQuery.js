@@ -21,6 +21,7 @@ class CoordinateSearchBox extends React.Component {
 
     handleSearchRegionChange(e) {
         this.setState({ searchRegion: e.target.value });
+        //console.log("Search Region: " + this.state.searchRegion);
     }
 
     handleSubmit(e) {
@@ -48,7 +49,7 @@ class VariantQuery extends React.Component {
 		super(props);
         this.state = {
             region: '',
-			variants: []
+			      variants: []
         };
 
         this.handleCoordinateQuery = this.handleCoordinateQuery.bind(this);
@@ -57,10 +58,14 @@ class VariantQuery extends React.Component {
     handleCoordinateQuery(searchRegion) {
         this.setState({ region: searchRegion });
 
+        //console.log("Search Query: " + this.state.region);
+        //console.log("Search Query 2: " + searchRegion);
+
         var coords = searchRegion.split(/[:-]/, 3);
-        this.props.source.variants(coords[0], coords[1], coords[2]).then(variants => {
-			this.setState({ variants : variants });
-		});
+        this.props.source.variants(coords[0], coords[1], coords[2]).then(
+          variants => {this.setState({ variants : variants });},
+          variants => {this.setState({ variants : [] });});
+        console.log("variants: " + this.state.variants);
     }
 
 	componentDidMount() {}
