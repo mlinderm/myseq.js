@@ -15,19 +15,23 @@ class VariantTable extends React.Component {
         return (
             <table>
                 <thead>
-                    <tr><th>Variant</th><th>Id</th></tr>
+                    <tr>
+                      <th>Variant</th>
+                      <th>Id</th>
+                      <th>Phenotype</th>
+                    </tr>
                 </thead>
                 <tbody>
                     {this.props.variants.map(variant => (
                         <tr key={variant.toString()}>
                           <td>{variant.toString()}</td>
                           <td><a href={"https://www.ncbi.nlm.nih.gov/projects/SNP/snp_ref.cgi?searchType=adhoc_search&type=rs&rs=" + variant.printID()}>
-                              {variant.printID()}</a></td> //TODO make work for list of IDs
+                              {variant.printID()}</a></td>
                         </tr>
                     ))}
                 </tbody>
             </table>
-        );
+        ); //TODO make work for list of IDs
     }
 }
 

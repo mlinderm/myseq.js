@@ -20,7 +20,7 @@ class CoordinateSearchBox extends React.Component {
     }
 
     handleSearchRegionChange(e) {
-        this.setState({ searchRegion: e.target.value });    
+        this.setState({ searchRegion: e.target.value });
     }
 
     handleSubmit(e) {
@@ -33,6 +33,7 @@ class CoordinateSearchBox extends React.Component {
             <form onSubmit={this.handleSubmit}>
                 <input type="text" placeholder="Genomic coordinates" value={this.state.searchRegion} onChange={this.handleSearchRegionChange}/>
                 <button>Query</button>
+                <div>e.g. chr1:1-200</div>
             </form>
         );
     }
@@ -55,10 +56,10 @@ class VariantQuery extends React.Component {
 
     handleCoordinateQuery(searchRegion) {
         this.setState({ region: searchRegion });
-        
+
         var coords = searchRegion.split(/[:-]/, 3);
         this.props.source.variants(coords[0], coords[1], coords[2]).then(variants => {
-			this.setState({ variants : variants });	
+			this.setState({ variants : variants });
 		});
     }
 
@@ -70,7 +71,7 @@ class VariantQuery extends React.Component {
                 <CoordinateSearchBox searchRegion={this.state.region} handleCoordinateQuery={this.handleCoordinateQuery} />
                 <div>
 				    <p>Listing variants in {this.state.region}</p>
-                    <VariantTable variants={this.state.variants} />	
+                    <VariantTable variants={this.state.variants} />
                 </div>
             </div>
 		);
