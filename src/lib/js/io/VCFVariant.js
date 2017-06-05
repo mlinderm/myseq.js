@@ -27,14 +27,14 @@ class VCFVariant {
 		this.ref      = this._fields[3];
         this.alt      = this._fields[4].split(',');
 
-		this.ids				= this._fields[2].split(':');
+		this.ids				= this._fields[2].split(';');
 	}
 
 	toString() {
 		return `${this.contig}:${this.position}${this.ref}>${this._fields[4]}`
 	}
 
-	printID() {
+	printID() { //not in use currently
 		if('.' === this.ids){
 			return 'None';
 		} else {

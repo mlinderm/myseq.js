@@ -26,9 +26,10 @@ class VariantTable extends React.Component {
                         <tr key={variant.toString()}>
                           <td>{variant.toString()}</td>
                           <td> {variant.ids.map(id=>(
-                            <a key={id} href={"https://www.ncbi.nlm.nih.gov/projects/SNP/snp_ref.cgi?searchType=adhoc_search&type=rs&rs=" + id}>
+                            (id !== ".") ? (
+                            <div key={id}><a href={"https://www.ncbi.nlm.nih.gov/projects/SNP/snp_ref.cgi?searchType=adhoc_search&type=rs&rs=" + id}>
                               {id}
-                            </a>))}
+                            </a><div>{" "}</div></div>):<div key={id}>None</div>))}
                           </td>
                         </tr>
                     ))}

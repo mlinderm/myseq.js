@@ -6,7 +6,7 @@
 import React from 'react';
 import PropTypes from 'prop-types';
 
-import { LocalFileReader, RemoteFileReader } from '../../lib/js/io/FileReaders-browser';  
+import { LocalFileReader, RemoteFileReader } from '../../lib/js/io/FileReaders-browser';
 import TabixIndexedFile from '../../lib/js/io/TabixIndexedFile';
 import VCFSource from '../../lib/js/io/VCFSource';
 
@@ -54,7 +54,7 @@ class LoadVCFFile extends React.Component {
 			console.log("Show an error: Only one file can be loaded at a time?");
 			return;
 		}
-		
+
 		var variantFile = new LocalFileReader(fileList.item(0));
 		var indexFile   = new LocalFileReader(fileList.item(1));
 		if (!indexFile.name().endsWith(".tbi")) {
@@ -63,8 +63,8 @@ class LoadVCFFile extends React.Component {
 
 		var vcfSource = new VCFSource(
 			new TabixIndexedFile(variantFile, indexFile)
-		);	
-		
+		);
+
 		// Notify application of new source
 		this.props.updateSource(vcfSource);
 	}
@@ -77,11 +77,11 @@ class LoadVCFFile extends React.Component {
 		if (indexURL === undefined) {
 			indexURL = variantURL + ".tbi";
 		}
-	
+
 		var indexedFile = new TabixIndexedFile(
-			new RemoteFileReader(variantURL), 
+			new RemoteFileReader(variantURL),
 			new RemoteFileReader(indexURL)
-		)	
+		)
 		var vcfSource = new VCFSource(indexedFile);
 
 		// Notify application of new source
@@ -90,10 +90,10 @@ class LoadVCFFile extends React.Component {
 
 	handleURLSubmit(e) {
 		e.preventDefault();
-		
+
 		// Currently assume index file can be found by adding extension.
 		// TODO: Enable index to be set directly
-		this._createAndUpdateSourceFromURL(this.state.url.trim());		
+		this._createAndUpdateSourceFromURL(this.state.url.trim());
 	}
 
 	updateAndSubmitURL(url) {
@@ -111,7 +111,9 @@ class LoadVCFFile extends React.Component {
 						<input type="submit" value="Load" />
 				</form>
 				<p>Or choose some these example datasets:</p>
-				<VCFLink url={"http://localhost:3000/data/single_sample.vcf.gz"} name={"single_sample.vcf"} updateAndSubmitURL={this.updateAndSubmitURL} /> 
+				<VCFLink url={"http://localhost:3000/data/single_sample.vcf.gz"} name={"single_sample.vcf"} updateAndSubmitURL={this.updateAndSubmitURL} />
+				<br />
+				<VCFLink url={"http://localhost:3000/data/complex.vcf.gz"} name={"complex.vcf"} updateAndSubmitURL={this.updateAndSubmitURL} />
 			</div>
 		);
 	}
