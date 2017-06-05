@@ -36,9 +36,10 @@ class VCFVariant {
 
 	printID() {
 		if('.' === this.id){
-			return 'None'
-		} else{
-		return `${this.id}`.split(':')
+			return 'None';
+		} else {
+		return `${this.id}`.split(':');
+	}
 	}
 
 };
