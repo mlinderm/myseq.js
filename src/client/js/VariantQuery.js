@@ -65,7 +65,7 @@ class VariantQuery extends React.Component {
         this.props.source.variants(coords[0], coords[1], coords[2]).then(
           variants => {this.setState({ variants : variants });},
           variants => {this.setState({ variants : [] });});
-        console.log("variants: " + this.state.variants);
+        //console.log("variants: " + this.state.variants);
     }
 
 	componentDidMount() {}

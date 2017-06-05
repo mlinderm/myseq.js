@@ -27,7 +27,7 @@ class VCFVariant {
 		this.ref      = this._fields[3];
         this.alt      = this._fields[4].split(',');
 
-		this.id				= this._fields[2];
+		this.ids				= this._fields[2].split(':');
 	}
 
 	toString() {
@@ -35,10 +35,11 @@ class VCFVariant {
 	}
 
 	printID() {
-		if('.' === this.id){
+		if('.' === this.ids){
 			return 'None';
 		} else {
-		return `${this.id}`.split(':');
+			//console.log(`${this.id}`.split(':'));
+		return `${this.ids}`;
 	}
 	}
 

@@ -25,8 +25,11 @@ class VariantTable extends React.Component {
                     {this.props.variants.map(variant => (
                         <tr key={variant.toString()}>
                           <td>{variant.toString()}</td>
-                          <td><a href={"https://www.ncbi.nlm.nih.gov/projects/SNP/snp_ref.cgi?searchType=adhoc_search&type=rs&rs=" + variant.printID()}>
-                              {variant.printID()}</a></td>
+                          <td> {variant.ids.map(id=>(
+                            <a key={id} href={"https://www.ncbi.nlm.nih.gov/projects/SNP/snp_ref.cgi?searchType=adhoc_search&type=rs&rs=" + id}>
+                              {id}
+                            </a>))}
+                          </td>
                         </tr>
                     ))}
                 </tbody>
@@ -34,6 +37,7 @@ class VariantTable extends React.Component {
         ); //TODO make work for list of IDs
     }
 }
+
 
 
 VariantTable.propTupes = {
