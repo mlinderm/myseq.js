@@ -16,6 +16,7 @@ class VCFVariant {
     alt: Array<string>;
 
 	id: string;
+	gt: string; //needs conversion
 
 
 	constructor(line: string, numFields: number = 8) {
@@ -25,23 +26,26 @@ class VCFVariant {
 		this.contig   = this._fields[0];
 		this.position = Number(this._fields[1]);
 		this.ref      = this._fields[3];
-        this.alt      = this._fields[4].split(',');
+    this.alt      = this._fields[4].split(',');
 
-		this.ids				= this._fields[2].split(';');
+		this.ids			= this._fields[2].split(';');
+
+		this.gt				= this._fields[9] //needs conversion
+
 	}
 
 	toString() {
 		return `${this.contig}:${this.position}${this.ref}>${this._fields[4]}`
 	}
 
-	printID() { //not in use currently
-		if('.' === this.ids){
-			return 'None';
-		} else {
-			//console.log(`${this.id}`.split(':'));
-		return `${this.ids}`;
-	}
-	}
+	// printID() { //not in use currently
+	// 	if('.' === this.ids){
+	// 		return 'None';
+	// 	} else {
+	// 		//console.log(`${this.id}`.split(':'));
+	// 	return `${this.ids}`;
+	// }
+	// }
 
 };
 

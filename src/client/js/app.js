@@ -9,7 +9,8 @@ import ReactDOM from 'react-dom';
 import VCFSource from '../../lib/js/io/VCFSource';
 
 import LoadVCFFile from './LoadVCFFile';
-import VariantQuery from './VariantQuery'; 
+import VariantQuery from './VariantQuery';
+import PhenotypeTable from './Phenotype';
 
 class App extends React.Component {
 	constructor() {
@@ -27,7 +28,10 @@ class App extends React.Component {
 		if (this.state.source) {
 			return (<VariantQuery source={this.state.source} />);
 		} else {
-			return (<LoadVCFFile updateSource={ this.updateSource.bind(this) } />);
+			return (<div>
+							<LoadVCFFile updateSource={ this.updateSource.bind(this) } />
+							<PhenotypeTable />
+							</div>);
 		}
 	}
 
