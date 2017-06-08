@@ -9,6 +9,7 @@ import PropTypes from 'prop-types';
 import { LocalFileReader, RemoteFileReader } from '../../lib/js/io/FileReaders-browser';  
 import TabixIndexedFile from '../../lib/js/io/TabixIndexedFile';
 import VCFSource from '../../lib/js/io/VCFSource';
+import { ReferenceGenome, hg19Reference } from '../../lib/js/features/ReferenceGenome';
 
 class VCFLink extends React.Component {
 	constructor(props) {
@@ -18,7 +19,7 @@ class VCFLink extends React.Component {
 
 	handleClick(e) {
 		e.preventDefault();
-		this.props.updateAndSubmitURL(this.props.url);
+		this.props.updateAndSubmitURL(this.props.url, this.props.reference);
 	}
 
 	render() {
@@ -29,6 +30,8 @@ class VCFLink extends React.Component {
 }
 
 VCFLink.propTypes = {
+    url: PropTypes.string,
+    reference: PropTypes.instanceOf(ReferenceGenome),
 	updateAndSubmitURL: PropTypes.func
 };
 
@@ -58,7 +61,7 @@ class LoadVCFFile extends React.Component {
 		var variantFile = new LocalFileReader(fileList.item(0));
 		var indexFile   = new LocalFileReader(fileList.item(1));
 		if (!indexFile.name().endsWith(".tbi")) {
-			[varianFile, indexFile] = [indexFile, variantFile];
+			[variantFile, indexFile] = [indexFile, variantFile];
 		}
 
 		var vcfSource = new VCFSource(
@@ -73,7 +76,7 @@ class LoadVCFFile extends React.Component {
 		this.setState({ url: e.target.value });
 	}
 
-	_createAndUpdateSourceFromURL(variantURL: string, indexURL?:string) {
+	_createAndUpdateSourceFromURL(variantURL: string, indexURL?:string, reference?:ReferenceGenome) {
 		if (indexURL === undefined) {
 			indexURL = variantURL + ".tbi";
 		}
@@ -82,7 +85,7 @@ class LoadVCFFile extends React.Component {
 			new RemoteFileReader(variantURL), 
 			new RemoteFileReader(indexURL)
 		)	
-		var vcfSource = new VCFSource(indexedFile);
+		var vcfSource = new VCFSource(indexedFile, reference);
 
 		// Notify application of new source
 		this.props.updateSource(vcfSource);
@@ -111,7 +114,7 @@ class LoadVCFFile extends React.Component {
 						<input type="submit" value="Load" />
 				</form>
 				<p>Or choose some these example datasets:</p>
-				<VCFLink url={"http://localhost:3000/data/single_sample.vcf.gz"} name={"single_sample.vcf"} updateAndSubmitURL={this.updateAndSubmitURL} /> 
+				<VCFLink url={"http://localhost:3000/data/single_sample.vcf.gz"} reference={hg19Reference} name={"single_sample.vcf"} updateAndSubmitURL={this.updateAndSubmitURL} /> 
 			</div>
 		);
 	}

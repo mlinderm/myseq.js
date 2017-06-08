@@ -8,6 +8,7 @@ trap "trap - SIGTERM && kill -- -$$" SIGINT SIGTERM EXIT
 IFY_CMD=browserify
 
 SHARED_TEST=(
+    "src/lib/js/features/ReferenceGenome.spec.js"
 )
 
 NODE_TEST=(

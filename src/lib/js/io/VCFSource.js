@@ -6,16 +6,26 @@
 import Q from 'q';
 import _ from 'underscore';
 
-import VCFVariant from './VCFVariant';
+import { ReferenceGenome, hg19Reference } from '../features/ReferenceGenome';
 import TabixIndexedFile from './TabixIndexedFile';
+import VCFVariant from './VCFVariant';
 
 class VCFSource {
-	_source: TabixIndexedFile;
+    _source: TabixIndexedFile;
+    _reference: ReferenceGenome;
+
     _samples: Q.Promise<Array<string>>;
 	
-	constructor(source: TabixIndexedFile) {
+	constructor(source: TabixIndexedFile, reference: ?ReferenceGenome) {
 		this._source = source;
-		
+        
+        if (reference === undefined) {
+            // TODO: Infer reference from Tabix file or VCF header
+            this._reference = hg19Reference;
+        } else {
+            this._reference = reference;
+        }
+            
 		// TODO: Parse VCF header
 	    this._samples = this._source.header().then(headerLines => {
             if (!headerLines[0].startsWith("##fileformat=VCF")) {
@@ -33,7 +43,8 @@ class VCFSource {
 	}
 
 	variants(ctg: string, pos: number, end: number) : Q.Promise<Array<VCFVariant>> {
-		return Q.spread([this._source.records(ctg, pos, end), this._samples], (records, samples) => {
+        var normalizedCtg = this._reference.normalizeContig(ctg);
+        return Q.spread([this._source.records(normalizedCtg, pos, end), this._samples], (records, samples) => {
 			return _.chain(records)
 				.map(record => new VCFVariant(record, samples.length === 0 ? 8 : 9 + samples.length))
 				.value();

@@ -3,6 +3,7 @@
 import {expect} from 'chai';
 
 import {LocalFileReader} from './FileReaders';
+import {ReferenceGenome, hg19Reference} from '../features/ReferenceGenome';
 import TabixIndexedFile from './TabixIndexedFile';
 import VCFSource from './VCFSource';
 
@@ -10,7 +11,7 @@ describe('VCFSource', function() {
     function getTestSource() {
         var vcfPath = './test-data/single_sample.vcf.gz';
         var idxPath = vcfPath + '.tbi';
-        return new VCFSource(new TabixIndexedFile(new LocalFileReader(vcfPath), new LocalFileReader(idxPath)));
+        return new VCFSource(new TabixIndexedFile(new LocalFileReader(vcfPath), new LocalFileReader(idxPath)), hg19Reference);
     }
 
     it('should load tabix VCF', function() {
@@ -44,6 +45,14 @@ describe('VCFSource', function() {
             expect(variant.alt).to.deep.equal(["T"]);
         });
     });
+
+    it('should return requested variants with other contig name', function() {
+        var source = getTestSource();
+        return source.variants('1', 1, 200).then(variants => {
+            expect(variants).to.have.lengthOf(1);
+        });
+    });
+
 
     it('should return zero length array for empty region', function() {
         var source = getTestSource();
