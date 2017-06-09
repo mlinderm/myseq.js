@@ -24,13 +24,14 @@ class VCFLink extends React.Component {
 
 	render() {
 		return (
-			<a href="#" onClick={this.handleClick}>{ this.props.name }</a>
+			<a href={this.props.url} onClick={this.handleClick}>{ this.props.name }</a>
 		);
 	}
 }
 
 VCFLink.propTypes = {
     url: PropTypes.string,
+    name: PropTypes.string,
     reference: PropTypes.instanceOf(ReferenceGenome),
 	updateAndSubmitURL: PropTypes.func
 };
@@ -43,8 +44,8 @@ class LoadVCFFile extends React.Component {
 
 		this.handleFiles = this.handleFiles.bind(this);
 		this.handleURLChange = this.handleURLChange.bind(this);
-		this.handleURLSubmit = this.handleURLSubmit.bind(this);
-		this.updateAndSubmitURL = this.updateAndSubmitURL.bind(this);
+        this.handleURLSubmit = this.handleURLSubmit.bind(this);
+        this.updateAndSubmitURL = this.updateAndSubmitURL.bind(this);
 	}
 
 	handleFiles(e) {
@@ -64,9 +65,7 @@ class LoadVCFFile extends React.Component {
 			[variantFile, indexFile] = [indexFile, variantFile];
 		}
 
-		var vcfSource = new VCFSource(
-			new TabixIndexedFile(variantFile, indexFile)
-		);	
+		var vcfSource = new VCFSource(new TabixIndexedFile(variantFile, indexFile));	
 		
 		// Notify application of new source
 		this.props.updateSource(vcfSource);
@@ -76,11 +75,7 @@ class LoadVCFFile extends React.Component {
 		this.setState({ url: e.target.value });
 	}
 
-	_createAndUpdateSourceFromURL(variantURL: string, indexURL?:string, reference?:ReferenceGenome) {
-		if (indexURL === undefined) {
-			indexURL = variantURL + ".tbi";
-		}
-	
+	_createAndUpdateSourceFromURL(variantURL: string, indexURL:string, reference?: ReferenceGenome) {	
 		var indexedFile = new TabixIndexedFile(
 			new RemoteFileReader(variantURL), 
 			new RemoteFileReader(indexURL)
@@ -96,12 +91,13 @@ class LoadVCFFile extends React.Component {
 		
 		// Currently assume index file can be found by adding extension.
 		// TODO: Enable index to be set directly
-		this._createAndUpdateSourceFromURL(this.state.url.trim());		
+        var url = this.state.url.trim();
+        this._createAndUpdateSourceFromURL(url, url + ".tbi");		
 	}
-
-	updateAndSubmitURL(url) {
+ 
+	updateAndSubmitURL(url, reference?: ReferenceGenome) {
 		this.setState({ url : url });
-		this._createAndUpdateSourceFromURL(url);
+		this._createAndUpdateSourceFromURL(url, url + ".tbi", reference);
 	}
 
 	render(): any {
@@ -109,12 +105,12 @@ class LoadVCFFile extends React.Component {
 			<div>
 				<input type="file" multiple="multiple" onChange={this.handleFiles} />
 				<p>Or supply a URL (assumes index available at the same URL with ".tbi" extension</p>
-				<form onSubmit={this.handleURLSubmit.bind(this)}>
+				<form onSubmit={this.handleURLSubmit}>
 						<input type="text" placeholder="URL of Tabix-indexed VCF file" value={this.state.url} onChange={this.handleURLChange}/>
 						<input type="submit" value="Load" />
 				</form>
 				<p>Or choose some these example datasets:</p>
-				<VCFLink url={"http://localhost:3000/data/single_sample.vcf.gz"} reference={hg19Reference} name={"single_sample.vcf"} updateAndSubmitURL={this.updateAndSubmitURL} /> 
+                <VCFLink url={"http://localhost:3000/data/single_sample.vcf.gz"} reference={hg19Reference} name={"single_sample.vcf"} updateAndSubmitURL={this.updateAndSubmitURL} /> 
 			</div>
 		);
 	}
