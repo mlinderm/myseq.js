@@ -20,6 +20,8 @@ describe('TabixIndexedFile', function() {
 		});
 	});
 
+    // TODO: It should throw on an invalid index file
+
 	it('should return requested records', function() {
 		var indexedFile = getTestFile();
 		return indexedFile.records('chr1', 1, 200).then(records => {

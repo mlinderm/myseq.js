@@ -11,6 +11,8 @@ import TabixIndexedFile from '../../lib/js/io/TabixIndexedFile';
 import VCFSource from '../../lib/js/io/VCFSource';
 import { ReferenceGenome, hg19Reference } from '../../lib/js/features/ReferenceGenome';
 
+import { Grid, Row, Col, Form, FormGroup, FormControl, ControlLabel, Button, HelpBlock } from 'react-bootstrap';
+
 class VCFLink extends React.Component {
 	constructor(props) {
 		super(props);
@@ -40,7 +42,13 @@ VCFLink.propTypes = {
 class LoadVCFFile extends React.Component {
 	constructor(props) {
 		super(props);
-		this.state = { url: '' };
+		this.state = { 
+            fileValidation: null,
+            fileHelpMessage: 'Select both the ".vcf.gz" and ".vcf.gz.tbi" files',
+            url: '',
+            urlValidation: null,
+            urlHelpMessage: 'The ".tbi" extension is added to obtain the URL of the index file'
+        };  
 
 		this.handleFiles = this.handleFiles.bind(this);
 		this.handleURLChange = this.handleURLChange.bind(this);
@@ -50,25 +58,27 @@ class LoadVCFFile extends React.Component {
 
 	handleFiles(e) {
 		// Create source from FileList object, checking for both vcf and index
-		var fileList = e.target.files;
-		if (fileList.length < 2) {
-			console.log("Show an error: Did you select both the VCF and its index file?");
-			return;
-		} else if (fileList.length > 2) {
-			console.log("Show an error: Only one file can be loaded at a time?");
-			return;
-		}
+		try {
+            let fileList = e.target.files;
+            if (fileList.length < 2) {
+                throw new Error("Only 1 file selected. Did you select both the VCF and its index file?");
+            } else if (fileList.length > 2) {
+                throw new Error("Too many files selected. Only one VCF file can be loaded at a time."); 
+            }
 		
-		var variantFile = new LocalFileReader(fileList.item(0));
-		var indexFile   = new LocalFileReader(fileList.item(1));
-		if (!indexFile.name().endsWith(".tbi")) {
-			[variantFile, indexFile] = [indexFile, variantFile];
-		}
+            let variantFile = new LocalFileReader(fileList.item(0));
+            let indexFile   = new LocalFileReader(fileList.item(1));
+            if (!indexFile.name().endsWith(".tbi")) {
+                [variantFile, indexFile] = [indexFile, variantFile];
+            }
 
-		var vcfSource = new VCFSource(new TabixIndexedFile(variantFile, indexFile));	
-		
-		// Notify application of new source
-		this.props.updateSource(vcfSource);
+            let vcfSource = new VCFSource(new TabixIndexedFile(variantFile, indexFile));	
+
+            // Notify application of new source
+            this.props.updateSource(vcfSource);
+        } catch (err) {
+            this.setState({ fileValidation: 'error', fileHelpMessage: err.message });
+        }
 	}
 
 	handleURLChange(e) {
@@ -76,22 +86,26 @@ class LoadVCFFile extends React.Component {
 	}
 
 	_createAndUpdateSourceFromURL(variantURL: string, indexURL:string, reference?: ReferenceGenome) {	
-		var indexedFile = new TabixIndexedFile(
-			new RemoteFileReader(variantURL), 
-			new RemoteFileReader(indexURL)
-		)	
-		var vcfSource = new VCFSource(indexedFile, reference);
+		try {
+            let indexedFile = new TabixIndexedFile(
+                new RemoteFileReader(variantURL), 
+                new RemoteFileReader(indexURL)
+            );	
+            let vcfSource = new VCFSource(indexedFile, reference);
 
-		// Notify application of new source
-		this.props.updateSource(vcfSource);
+            // Notify application of new source
+            this.props.updateSource(vcfSource);
+        } catch(err) {
+            this.setState({ urlValidation: 'error', urlHelpMessage: err.message });    
+        }
 	}
 
 	handleURLSubmit(e) {
 		e.preventDefault();
 		
-		// Currently assume index file can be found by adding extension.
-		// TODO: Enable index to be set directly
-        var url = this.state.url.trim();
+		// TODO: Enable index to be set directly, instead of assuming index file can
+        // always be found by adding the ".tbi" extension
+        let url = this.state.url.trim();
         this._createAndUpdateSourceFromURL(url, url + ".tbi");		
 	}
  
@@ -102,16 +116,39 @@ class LoadVCFFile extends React.Component {
 
 	render(): any {
 		return (
-			<div>
-				<input type="file" multiple="multiple" onChange={this.handleFiles} />
-				<p>Or supply a URL (assumes index available at the same URL with ".tbi" extension</p>
-				<form onSubmit={this.handleURLSubmit}>
-						<input type="text" placeholder="URL of Tabix-indexed VCF file" value={this.state.url} onChange={this.handleURLChange}/>
-						<input type="submit" value="Load" />
-				</form>
-				<p>Or choose some these example datasets:</p>
-                <VCFLink url={"http://localhost:3000/data/single_sample.vcf.gz"} reference={hg19Reference} name={"single_sample.vcf"} updateAndSubmitURL={this.updateAndSubmitURL} /> 
-			</div>
+			<Grid>
+                <h3>Choose your MySeq input</h3>
+                <p>Get started with MySeq by choosing one of the 3 input methods below</p>
+                <h4>Load variants from a local file on this computer</h4>
+                <Form horizontal>
+                    <FormGroup validationState={this.state.fileValidation}>
+                        <Col componentClass={ControlLabel} sm={2}>
+                            Local VCF file
+                        </Col>
+                        <Col sm={10}>
+                            <FormControl type="file" multiple onChange={this.handleFiles} />
+                            <HelpBlock>{this.state.fileHelpMessage}</HelpBlock>
+                        </Col>
+                    </FormGroup>
+                </Form>
+            	<h4><span>Or</span> load variants from a remote file</h4>
+				<Form horizontal onSubmit={this.handleURLSubmit}>
+                    <FormGroup validationState={this.state.urlValidation}>
+                        <Col componentClass={ControlLabel} sm={2}>
+                            URL of VCF File
+                        </Col>
+                        <Col sm={8}>
+                            <FormControl type="text" placeholder="URL of Tabix-indexed VCF file" value={this.state.url} onChange={this.handleURLChange} />
+                            <HelpBlock>{this.state.urlHelpMessage}</HelpBlock>
+                        </Col>
+                        <Col sm={2}>
+                            <Button type="submit">Load</Button>
+                        </Col>
+                    </FormGroup>
+                </Form>
+                <h4><span>Or</span> choose one of these example datasets</h4>
+                <VCFLink url={"http://localhost:3000/data/single_sample.vcf.gz"} reference={hg19Reference} name={"single_sample.vcf"} updateAndSubmitURL={this.updateAndSubmitURL} />
+			</Grid>
 		);
 	}
 }
