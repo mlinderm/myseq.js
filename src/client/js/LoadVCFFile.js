@@ -68,10 +68,15 @@ class LoadVCFFile extends React.Component {
 		
             let variantFile = new LocalFileReader(fileList.item(0));
             let indexFile   = new LocalFileReader(fileList.item(1));
-            if (!indexFile.name().endsWith(".tbi")) {
+            if (variantFile.name().endsWith(".tbi") && !indexFile.name().endsWith(".tbi")) {
                 [variantFile, indexFile] = [indexFile, variantFile];
             }
 
+            if (!indexFile.name().endsWith(".tbi")) {
+                throw new Error('Missing index file. Did you select the VCF file (".vcf.gz") and its index file (".vcf.gz.tbi")?');
+            }
+
+            // We won't know if this was a valid source until well after this function returns
             let vcfSource = new VCFSource(new TabixIndexedFile(variantFile, indexFile));	
 
             // Notify application of new source

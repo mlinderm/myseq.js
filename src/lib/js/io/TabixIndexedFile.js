@@ -147,7 +147,7 @@ type Chunk = {
 
 // Tabix schema, as defined in http://samtools.github.io/hts-specs/tabix.pdf, adapted
 // from https://github.com/jsa-aerial/JS-Binary-VCF-Tabix
-var TABIX_FORMAT = {
+const TABIX_FORMAT = {
 
     'jBinary.all': 'tabix',
     'jBinary.littleEndian': true,
@@ -288,7 +288,15 @@ class TabixIndexedFile {
 				new jDataView(uncompressedIndex, 0, undefined, true /* little endian */), 
 				TABIX_FORMAT
 			);
-			var index = parser.readAll();
+			
+            // Check for valid magic string
+            if (parser.read(TABIX_FORMAT.header.magic, 0) !== "TBI\x01") {
+                throw new Error("Invalid index file");
+            }
+          
+            // Parse entire index file
+            var index = parser.readAll();
+            
 
 			// Set overlap function based on index header
 			var format = index.head.format;
