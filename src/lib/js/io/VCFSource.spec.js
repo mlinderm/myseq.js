@@ -3,15 +3,20 @@
 import {expect} from 'chai';
 
 import {LocalFileReader} from './FileReaders';
+import * as Ref from '../features/ReferenceGenome';
 import TabixIndexedFile from './TabixIndexedFile';
 import VCFSource from './VCFSource';
 
 describe('VCFSource', function() {
-    function getTestSource() {
-        var vcfPath = './test-data/single_sample.vcf.gz';
+    function getTestSourceFull(vcfPath: string, reference: Ref.ReferenceGenome) {
         var idxPath = vcfPath + '.tbi';
-        return new VCFSource(new TabixIndexedFile(new LocalFileReader(vcfPath), new LocalFileReader(idxPath)));
+        return new VCFSource(new TabixIndexedFile(new LocalFileReader(vcfPath), new LocalFileReader(idxPath)), reference);
     }
+
+    function getTestSource(vcfPath: string = './test-data/single_sample.vcf.gz') {
+        return getTestSourceFull(vcfPath, Ref.hg19Reference);
+    }
+
 
     it('should load tabix VCF', function() {
         var source = getTestSource();
@@ -45,6 +50,14 @@ describe('VCFSource', function() {
         });
     });
 
+    it('should return requested variants with alternative contig name', function() {
+        var source = getTestSource();
+        return source.variants('1', 1, 200).then(variants => {
+            expect(variants).to.have.lengthOf(1);
+        });
+    });
+
+
     it('should return zero length array for empty region', function() {
         var source = getTestSource();
         return source.variants('chr1', 102, 102).then(variants => {
@@ -64,5 +77,12 @@ describe('VCFSource', function() {
       return source.variantByVariant('chr1',100,"A","G").then(variants => {
         expect(variants).to.have.lengthOf(0);
       })
+    });
+    
+    it('should infer reference genome from VCF header', function() {
+        var source = getTestSourceFull('./test-data/single_sample_with_reference.vcf.gz', undefined);
+        return source._reference.then(ref => {
+            expect(ref).to.equal(Ref.b37Reference);
+        });
     });
 });

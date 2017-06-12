@@ -1,6 +1,8 @@
 'use strict';
 
-import {expect} from 'chai';
+import chai from 'chai';
+import chaiAsPromised from 'chai-as-promised';
+let expect = chai.use(chaiAsPromised).expect
 
 import {LocalFileReader} from './FileReaders';
 import TabixIndexedFile from './TabixIndexedFile';
@@ -64,6 +66,11 @@ describe('TabixIndexedFile', function() {
 			expect(contigs.size).to.equal(1);
 		});
 	});
+
+    it('should reject on invalid index file', () => {
+        let indexedFile = getTestFile('./test-data/single_sample.vcf.gz', './test-data/single_sample.vcf.gz')
+        expect(indexedFile._contigs).to.be.rejected;
+    });
 
 	it('should return requested records', function() {
 		var indexedFile = getTestFile();
