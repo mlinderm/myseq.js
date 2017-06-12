@@ -18,7 +18,7 @@ class VariantTable extends React.Component {
                     <tr>
                       <th>Variant</th>
                       <th>Id</th>
-                      <th>Phenotype</th>
+                      <th>Genotype</th>
                     </tr>
                 </thead>
                 <tbody>
@@ -31,6 +31,7 @@ class VariantTable extends React.Component {
                               {id}
                             </a><div>{" "}</div></div>):<div key={id}>None</div>))}
                           </td>
+                          <td>{variant.genotype()}</td>
                         </tr>
                     ))}
                 </tbody>

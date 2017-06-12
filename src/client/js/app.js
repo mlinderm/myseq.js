@@ -11,8 +11,19 @@ import VCFSource from '../../lib/js/io/VCFSource';
 import LoadVCFFile from './LoadVCFFile';
 import VariantQuery from './VariantQuery';
 import PhenotypeTable from './Phenotype';
+import SingleTraitTable from './SingleTraitTable';
+
+var example = {
+  variant: { chr: 16, pos: 48258198, ref: "C", alt: "T"},
+  association: [
+    ["C/C", "Wet earwax"],
+    ["C/T", "Wet earwax, better BO"],
+    ["T/T", "Dry earwax"]
+  ],
+};
 
 class App extends React.Component {
+
 	constructor() {
 		super();
 		this.state = {
@@ -25,12 +36,18 @@ class App extends React.Component {
 	}
 
 	render(): any {
+
 		if (this.state.source) {
-			return (<VariantQuery source={this.state.source} />);
+			return (<div>
+								<VariantQuery source={this.state.source} />
+								----------------------------------
+								{/*<PhenotypeTable source={this.state.source}/>*/}
+								----------------------------------
+								<SingleTraitTable source={this.state.source} trait={example}/>
+							</div>);
 		} else {
 			return (<div>
-							<LoadVCFFile updateSource={ this.updateSource.bind(this) } />
-							<PhenotypeTable />
+								<LoadVCFFile updateSource={ this.updateSource.bind(this) } />
 							</div>);
 		}
 	}

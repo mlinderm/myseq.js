@@ -30,13 +30,29 @@ class VCFVariant {
 
 		this.ids			= this._fields[2].split(';');
 
-		this.gt				= this._fields[9] //needs conversion
-
+		this.zyg				= this._fields[9].split('/')
 	}
 
 	toString() {
 		return `${this.contig}:${this.position}${this.ref}>${this._fields[4]}`
 	}
+
+	genotype(sample: string) {
+		if (this.zyg[0] === "0") {
+			var g1 = this.ref;
+		} else {
+			var g1 = this.alt;
+		}
+
+		if (this.zyg[1] === "1") {
+			var g2 = this.alt;
+		} else {
+			var g2 = this.ref;
+		}
+		return (g1 + "/" + g2)
+	}
+
+
 
 	// printID() { //not in use currently
 	// 	if('.' === this.ids){

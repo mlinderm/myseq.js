@@ -19,7 +19,7 @@ describe('VCFSource', function() {
     });
 
     // TODO: Test sites-only VCF
-    
+
     it('should extract the samples from the header', function() {
         var source = getTestSource();
         return source._samples.then(samples => {
@@ -31,7 +31,7 @@ describe('VCFSource', function() {
         var source = getTestSource();
         return source.variants('chr1', 1, 200).then(variants => {
             expect(variants).to.have.lengthOf(1);
-            
+
             var variant = variants[0];
             expect(variant._line).to.equal('chr1\t100\trs1\tA\tT\t100.0\tPASS\tAC=1;AN=2\tGT\t0/1');
             expect(variant._fields.length).to.equal(10);
@@ -50,5 +50,19 @@ describe('VCFSource', function() {
         return source.variants('chr1', 102, 102).then(variants => {
             expect(variants).to.have.lengthOf(0);
         });
+    });
+
+    it ('should return variants with matching alleles', function() {
+      var source = getTestSource();
+      return source.variantByVariant('chr1',100,"A","T").then(variants => {
+        expect(variants).to.have.lengthOf(1);
+      })
+    });
+
+    it ('should filter variants with mismatching alleles', function() {
+      var source = getTestSource();
+      return source.variantByVariant('chr1',100,"A","G").then(variants => {
+        expect(variants).to.have.lengthOf(0);
+      })
     });
 });
