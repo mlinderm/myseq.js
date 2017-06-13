@@ -11,16 +11,26 @@ import VCFSource from '../../lib/js/io/VCFSource';
 import LoadVCFFile from './LoadVCFFile';
 import VariantQuery from './VariantQuery';
 import PhenotypeTable from './Phenotype';
-import SingleTraitTable from './SingleTraitTable';
+import MultiTraitTable from './TraitTable';
 
-var example = {
+var example = [{
+  name: "Earwax",
   variant: { chr: 16, pos: 48258198, ref: "C", alt: "T"},
   association: [
     ["C/C", "Wet earwax"],
     ["C/T", "Wet earwax, better BO"],
     ["T/T", "Dry earwax"]
-  ],
-};
+  ]
+},
+{
+  name: "Asparagus Anosmia",
+  variant: { chr: 1, pos: 248496863, ref: "T", alt: "C"},
+  association: [
+    ["A/A", "Pee smells like asparagus"]
+  ]
+}
+];
+
 
 class App extends React.Component {
 
@@ -41,9 +51,8 @@ class App extends React.Component {
 			return (<div>
 								<VariantQuery source={this.state.source} />
 								----------------------------------
-								{/*<PhenotypeTable source={this.state.source}/>*/}
-								----------------------------------
-								<SingleTraitTable source={this.state.source} trait={example}/>
+								<MultiTraitTable source={this.state.source} traits={example} />
+                <p>Yellow means genotype is present.</p>
 							</div>);
 		} else {
 			return (<div>

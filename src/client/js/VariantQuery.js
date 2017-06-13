@@ -9,6 +9,8 @@ import PropTypes from 'prop-types';
 import VCFSource from '../../lib/js/io/VCFSource';
 import VariantTable from './VariantTable';
 
+import { Grid, Row, Col, Form, FormGroup, FormControl, ControlLabel, Button, HelpBlock } from 'react-bootstrap';
+
 class CoordinateSearchBox extends React.Component {
     constructor(props) {
         super();
@@ -32,9 +34,17 @@ class CoordinateSearchBox extends React.Component {
     render() {
         return(
             <form onSubmit={this.handleSubmit}>
-                <input type="text" placeholder="Genomic coordinates" value={this.state.searchRegion} onChange={this.handleSearchRegionChange}/>
-                <button>Query</button>
-                <div>e.g. chr1:1-200</div>
+              <FormGroup controlId="formBasicText">
+                <ControlLabel>Search for variants with genomic coordinates.</ControlLabel>
+                <br />
+                <Col sm={8}>
+                  <FormControl type="text" placeholder="Genomic coordinates" value={this.state.searchRegion} onChange={this.handleSearchRegionChange}/>
+                  <HelpBlock>e.g. chr1:1-200</HelpBlock>
+                </Col>
+                <Col sm={2}>
+                  <Button type="submit">Query</Button>
+                </Col>
+              </FormGroup>
             </form>
         );
     }
@@ -75,13 +85,20 @@ class VariantQuery extends React.Component {
   }
 
 	render() {
+    if (this.state.region === "") {
+      var placeholder = "No Entry";
+    } else {
+      placeholder = this.state.region;
+    }
+
         return (
             <div>
                 <CoordinateSearchBox searchRegion={this.state.region} handleCoordinateQuery={this.handleCoordinateQuery} />
-                <div>
-				    <p>Listing variants in {this.state.region}</p>
-                    <VariantTable variants={this.state.variants} />
-                </div>
+                {/*when autofilled the color matches the genotype match color of the phenotype table*/}
+                <br/>
+                <br/>
+				        <h3>Listing variants in: {placeholder}</h3>
+                <VariantTable variants={this.state.variants} />
             </div>
 		);
 	}

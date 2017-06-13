@@ -6,6 +6,8 @@ import { LocalFileReader, RemoteFileReader } from '../../lib/js/io/FileReaders-b
 import TabixIndexedFile from '../../lib/js/io/TabixIndexedFile';
 import VCFSource from '../../lib/js/io/VCFSource';
 
+import { Table } from 'react-bootstrap';
+
 
 //takes "source" and single "trait"
 //single variant phenotype table whos props are variant and association Array
@@ -45,27 +47,40 @@ class SingleTraitTable extends React.Component {
 
   render() {
     return (
-      <table>
-          <thead>
-              <tr>
-                <th>Genotype</th>
-                <th>Phenotype</th>
-              </tr>
-          </thead>
-          <tbody>
+      <div>
+      <h3>{this.props.trait.name}</h3>
+      <Table bordered={true}>
+        <thead>
+            <tr>
+              <th>Genotype</th>
+              <th>Phenotype</th>
+            </tr>
+        </thead>
+        <tbody>
             {this.state.listOfTraits.map(list =>
             <tr style={(this.state.genotype === list[0]) ?
-                      {color:"#d0021b"} : {color:"#000000"}
+                      {backgroundColor:"#ffff99"} : {backgroundColor:"#ffffff"}
                       }
                 key={list[1]}>
               <td>{list[0]}</td>
               <td>{list[1]}</td>
             </tr>
           )}
-          </tbody>
-      </table>
+        </tbody>
+    </Table>
+    </div>
     )
   };
 }
 
-export default SingleTraitTable;
+class MultiTraitTable extends React.Component {
+  render() {
+    return(
+      <div>
+      {this.props.traits.map(singleTrait => <SingleTraitTable source={this.props.source} trait={singleTrait} key={singleTrait.name}/>)}
+      </div>
+    )
+  }
+}
+
+export default MultiTraitTable;
