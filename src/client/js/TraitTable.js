@@ -14,6 +14,7 @@ import { Table } from 'react-bootstrap';
 // single, then call source.variantbyVAriant().this(variant=>{
 //if (variant.Length) this.setState({currentGT: variant GT})}
 
+//props are variant (VCF source), trait table (array)
 class SingleTraitTable extends React.Component {
 
   constructor(props){
@@ -73,6 +74,7 @@ class SingleTraitTable extends React.Component {
   };
 }
 
+//props are variant (VCF source), trait table (array)
 class MultiTraitTable extends React.Component {
   render() {
     return(

@@ -84,12 +84,6 @@ class VCFSource {
 			return _.filter(variants, variant => variant.ref == ref && variant.alt == alt && variant.genotype() == geno)
 		}), [geno, assocString]])
 	}
-
-	// boolSearch(ctg: string, pos: number, ref: string, alt: string, geno: string, assocString: string) {
-	// 	if (this.variantByVariantandGT(ctg, pos, ref, alt, geno, assocString)[0].then(variants => {return(variants.length !== 0)}){
-	// 		return ( assocString )
-	// 	}
-	// }
 }
 
 module.exports = VCFSource;
