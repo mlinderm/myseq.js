@@ -35,7 +35,7 @@ class CoordinateSearchBox extends React.Component {
         return(
             <form onSubmit={this.handleSubmit}>
               <FormGroup controlId="formBasicText">
-                <ControlLabel>Search for variants with genomic coordinates.</ControlLabel>
+                <ControlLabel><h3>Search for variants with genomic coordinates.</h3></ControlLabel>
                 <br />
                 <Col sm={8}>
                   <FormControl type="text" placeholder="Genomic coordinates" value={this.state.searchRegion} onChange={this.handleSearchRegionChange}/>

@@ -16,7 +16,7 @@ class VCFVariant {
   alt: Array<string>;
 
 	id: string;
-	gt: string; //needs conversion
+	gt: string;
 
 	variantInfo: {};
 
@@ -41,7 +41,11 @@ class VCFVariant {
  	myVariantInfo(chr, pos, ref, alt) {
 		if (this.variantInfo == null) {
 			const url = `https://myvariant.info/v1/query?q=chr${chr}%3A${pos}`;
-			fetch(url).then(response => response.json()).then(data => data.hits.map(hit => {if (hit._id === `chr${chr}:g.${pos}${ref}>${alt}`) {this.variantInfo=hit} }));
+			fetch(url)
+				.then(response => response.json())
+					.then(data => data.hits
+						.map(hit => {if (hit._id === `chr${chr}:g.${pos}${ref}>${alt}`) {this.variantInfo=hit} })
+					);
 		}
 	}
 

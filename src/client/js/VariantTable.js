@@ -84,68 +84,71 @@ class VariantRow extends React.Component {
         </tr>
         {(this.state.rowHidden === false) ?
           <tr>
-            <td colSpan="2">
-              <ul>
+            <td colSpan="3">
+              <div style={{float:"left"}}>
+                <ul>
 
-                <li><a href={`http://www.ncbi.nlm.nih.gov/clinvar?term=%28%28%28${position}%5BBase%20Position%20for%20Assembly%20GRCh37%5D%29%20AND%20${chromosome}%5BChromosome%5D%29%29`} target="_blank">ClinVar</a></li>
-                <li><a href={`http://genome.ucsc.edu/cgi-bin/hgTracks?db=hg19&highlight=hg19.chr${chromosome}%3A${position}-${position}&position=chr${chromosome}%3A${position}-${position}`} target="_blank">UCSC</a></li>
-                <li><a href={`http://exac.broadinstitute.org/variant/${chromosome}-${position}-${reference}-${alternate}`} target="_blank">ExAC</a></li>
+                  <li><a href={`http://www.ncbi.nlm.nih.gov/clinvar?term=%28%28%28${position}%5BBase%20Position%20for%20Assembly%20GRCh37%5D%29%20AND%20${chromosome}%5BChromosome%5D%29%29`} target="_blank">ClinVar</a></li>
+                  <li><a href={`http://genome.ucsc.edu/cgi-bin/hgTracks?db=hg19&highlight=hg19.chr${chromosome}%3A${position}-${position}&position=chr${chromosome}%3A${position}-${position}`} target="_blank">UCSC</a></li>
+                  <li><a href={`http://exac.broadinstitute.org/variant/${chromosome}-${position}-${reference}-${alternate}`} target="_blank">ExAC</a></li>
 
-                <li>
-                  OMiM:<ul style={{display:"inline", padding:4}}>{rsidsForMapping.map(id=>(
-                    (id !== ".") ? (
-                      <li style={{display:"inline"}} key={id}>
-                      <a
-                      href={"https://www.omim.org/entry/117800?search=rs" + id.slice(2)}
-                      target="_blank"
-                      key={id}
-                      >
-                        {id}
-                      </a>&nbsp;</li>) :
-                      <li style={{display:"inline"}} key={id}>
-                      None
-                      </li>))}</ul>
-                </li>
+                  <li>
+                    OMiM:<ul style={{display:"inline", padding:4}}>{rsidsForMapping.map(id=>(
+                      (id !== ".") ? (
+                        <li style={{display:"inline"}} key={id}>
+                        <a
+                        href={`https://www.omim.org/search/?search=rs${id.slice(2)}`}
+                        target="_blank"
+                        key={id}
+                        >
+                          {id}
+                        </a>&nbsp;</li>) :
+                        <li style={{display:"inline"}} key={id}>
+                        None
+                        </li>))}</ul>
+                  </li>
 
-                <li>
-                  SNPedia:<ul style={{display:"inline", padding:4}}>{rsidsForMapping.map(id=>(
-                    (id !== ".") ? (
-                      <li style={{display:"inline"}} key={id}>
-                      <a
-                      href={`https://www.snpedia.com/index.php/Rs${id.slice(2)}(${reference};${alternate})`}
-                      target="_blank"
-                      key={id}
-                      >
-                        {id}
-                      </a>&nbsp;</li>) :
-                      <li style={{display:"inline"}} key={id}>
-                      None
-                      </li>))}</ul>
-                </li>
+                  <li>
+                    SNPedia:<ul style={{display:"inline", padding:4}}>{rsidsForMapping.map(id=>(
+                      (id !== ".") ? (
+                        <li style={{display:"inline"}} key={id}>
+                        <a
+                        href={`https://www.snpedia.com/index.php/Rs${id.slice(2)}(${reference};${alternate})`}
+                        target="_blank"
+                        key={id}
+                        >
+                          {id}
+                        </a>&nbsp;</li>) :
+                        <li style={{display:"inline"}} key={id}>
+                        None
+                        </li>))}</ul>
+                  </li>
 
-                <li>
-                  dbSNP:<ul style={{display:"inline", padding:4}}>{rsidsForMapping.map(id=>(
-                    (id !== ".") ? (
-                      <li style={{display:"inline"}} key={id}>
-                      <a
-                      href={`https://www.ncbi.nlm.nih.gov/projects/SNP/snp_ref.cgi?searchType=adhoc_search&type=rs&rs=${id.slice(2)}`}
-                      target="_blank"
-                      key={id}
-                      >
-                        {id}
-                      </a>&nbsp;</li>) :
-                      <li style={{display:"inline"}} key={id}>
-                      None
-                      </li>))}</ul>
-                </li>
+                  <li>
+                    dbSNP:<ul style={{display:"inline", padding:4}}>{rsidsForMapping.map(id=>(
+                      (id !== ".") ? (
+                        <li style={{display:"inline"}} key={id}>
+                        <a
+                        href={`https://www.ncbi.nlm.nih.gov/projects/SNP/snp_ref.cgi?searchType=adhoc_search&type=rs&rs=${id.slice(2)}`}
+                        target="_blank"
+                        key={id}
+                        >
+                          {id}
+                        </a>&nbsp;</li>) :
+                        <li style={{display:"inline"}} key={id}>
+                        None
+                        </li>))}</ul>
+                  </li>
 
-                <li><a href="https://www.google.com/" target="_blank">Google TODO</a></li>
-                <li><a href="http://myvariant.info/v1/api/#MyVariant.info-variant-query-service-GET-Variant-query-service" target="_blank">MyVariant.Info TODO</a></li>
+                  <li><a href="https://www.google.com/" target="_blank">Google TODO</a></li>
+                  <li><a href="http://myvariant.info/v1/api/#MyVariant.info-variant-query-service-GET-Variant-query-service" target="_blank">MyVariant.Info TODO</a></li>
                 </ul>
+              </div>
+              <div style={{float:"right", margin:"0 1.5%"}}>
+                Inbreeding Coefficient: {(variantInfo != null) ? variantInfo.exac_nontcga.inbreedingcoeff : "N/A"}
+              </div>
             </td>
-            <td colSpan="1">
-              Inbreeding Coefficient: {(variantInfo != null) ? variantInfo.exac_nontcga.inbreedingcoeff : "N/A"}
-            </td>
+
           </tr>
           : <tr></tr>
         }
