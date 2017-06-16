@@ -82,7 +82,7 @@ class VCFSource {
 			// Filter for exact position and allele match, if none found and assumeRefRef
 			// is true, synthesize a variant with a Ref/Ref genotype
 			return _.filter(variants, variant => variant.ref == ref && variant.alt == alt && variant.genotype() == geno)
-		}))
+		}, () => {return []}))
 	}
 }
 

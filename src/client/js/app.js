@@ -35,7 +35,9 @@ var example = [{
 var exampleRisk = [
   {'AC': '2', 'OR': '2.17', 'chr': 'chr7', 'LR': '1.991', 'genotype': 'C/C', 'AF': '0.178', 'alt': 'C', 'ref': 'T', 'pos': '141672604', 'id': 'rs10246939'},
   {'AC': '1', 'OR': '1.18', 'chr': 'chr7', 'LR': '1.083', 'genotype': 'T/C', 'AF': '0.178', 'alt': 'C', 'ref': 'T', 'pos': '141672604', 'id': 'rs10246939'},
-  {'AC': '0', 'OR': '1', 'chr': 'chr7', 'LR': '0.918', 'genotype': 'T/T', 'AF': '0.178', 'alt': 'C', 'ref': 'T', 'pos': '141672604', 'id': 'rs10246939'}
+  {'AC': '0', 'OR': '1', 'chr': 'chr7', 'LR': '0.918', 'genotype': 'T/T', 'AF': '0.178', 'alt': 'C', 'ref': 'T', 'pos': '141672604', 'id': 'rs10246939'},
+  {'AC': '0', 'OR': '1', 'chr': 'chr16', 'LR': '0.918', 'genotype': 'C/T', 'AF': '0.178', 'alt': 'T', 'ref': 'C', 'pos': '48258198', 'id': 'rs17822931'},
+  {'AC': '0', 'OR': '1', 'chr': 'chr7', 'LR': '0.918', 'genotype': 'C/T', 'AF': '0.178', 'alt': 'T', 'ref': 'C', 'pos': '48258198', 'id': 'rs17822931'}
 ];
 
 class App extends React.Component {

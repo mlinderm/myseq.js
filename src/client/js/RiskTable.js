@@ -7,13 +7,7 @@ import VCFSource from '../../lib/js/io/VCFSource';
 
 import { Table } from 'react-bootstrap';
 
-var exampleRisk = [
-  {'AC': '2', 'OR': '2.17', 'chr': 'chr7', 'LR': '1.991', 'genotype': 'C/C', 'AF': '0.178', 'alt': 'C', 'ref': 'T', 'pos': '141672604', 'id': 'rs10246939'},
-  {'AC': '1', 'OR': '1.18', 'chr': 'chr7', 'LR': '1.083', 'genotype': 'T/C', 'AF': '0.178', 'alt': 'C', 'ref': 'T', 'pos': '141672604', 'id': 'rs10246939'},
-  {'AC': '0', 'OR': '1', 'chr': 'chr7', 'LR': '0.918', 'genotype': 'T/T', 'AF': '0.178', 'alt': 'C', 'ref': 'T', 'pos': '141672604', 'id': 'rs10246939'}
-];
-
-//will take source and variants for disease (example )
+//will take source and variants for disease
 class RiskTable extends React.Component {
 
   constructor(props){
@@ -35,19 +29,25 @@ class RiskTable extends React.Component {
       searchs.push(this.props.source.variantByVariantandGT(variant.chr, variant.pos, variant.ref, variant.alt, variant.genotype));
     }
 
-    Promise.all(searchs).then(v=>{v
-      .map(va=>{if (va.length > 0) {
-          filterIndices = filterIndices + "1"
-        } else{filterIndices = filterIndices + "0"}
-        })})
-        .then(()=>{for (var i = 0; i < filterIndices.length; ++i){
-          if (filterIndices[i] === "1") {
-            var tempState = this.state.filteredRiskyVariants;
-            tempState.push(this.state.riskyVariants[i])
-            this.setState({filteredRiskyVariants:tempState});
+    Promise.all(searchs)
+      .then(v=>{
+        v.map(va=>{
+            if (va.length > 0) {
+              filterIndices = filterIndices + "1"
+            } else {
+              filterIndices = filterIndices + "0"
+            }
+        })},
+        (error) => {console.log(error); })
+        .then(()=> {
+          for (var i = 0; i < filterIndices.length; ++i) {
+              if (filterIndices[i] === "1") {
+                var tempState = this.state.filteredRiskyVariants;
+                tempState.push(this.state.riskyVariants[i])
+                this.setState({filteredRiskyVariants:tempState});
+              }
           }
-
-    }});
+        });
 }
 
   render() {
