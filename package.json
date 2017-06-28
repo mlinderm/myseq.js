@@ -49,6 +49,7 @@
     "react": "^15.5.4",
     "react-bootstrap": "^0.31.0",
     "react-dom": "^15.5.4",
+    "react-router-dom": "^4.1.1",
     "text-encoding": "^0.6.4",
     "underscore": "^1.8.3"
   },

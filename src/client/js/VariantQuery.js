@@ -9,11 +9,16 @@ import PropTypes from 'prop-types';
 import VCFSource from '../../lib/js/io/VCFSource';
 import VariantTable from './VariantTable';
 
+import { Grid, Col, Form, FormGroup, FormControl, ControlLabel, Button, HelpBlock } from 'react-bootstrap';
+
+
 class CoordinateSearchBox extends React.Component {
     constructor(props) {
-        super();
+        super(props);
 
-        this.state = { searchRegion: '' };
+        this.state = { 
+            searchRegion: '',
+        };
 
         this.handleSearchRegionChange = this.handleSearchRegionChange.bind(this);
         this.handleSubmit = this.handleSubmit.bind(this);
@@ -21,7 +26,6 @@ class CoordinateSearchBox extends React.Component {
 
     handleSearchRegionChange(e) {
         this.setState({ searchRegion: e.target.value });
-        //console.log("Search Region: " + this.state.searchRegion);
     }
 
     handleSubmit(e) {
@@ -31,11 +35,17 @@ class CoordinateSearchBox extends React.Component {
 
     render() {
         return(
-            <form onSubmit={this.handleSubmit}>
-                <input type="text" placeholder="Genomic coordinates" value={this.state.searchRegion} onChange={this.handleSearchRegionChange}/>
-                <button>Query</button>
-                <div>e.g. chr1:1-200</div>
-            </form>
+            <Form horizontal onSubmit={this.handleSubmit}>
+                <FormGroup validationState={this.props.validation}>
+                    <Col sm={4}>
+                        <FormControl type="text" placeholder="Genomic coordinates" value={this.state.searchRegion} onChange={this.handleSearchRegionChange} />
+                        <HelpBlock>{this.props.helpMessage}</HelpBlock>
+                    </Col>
+                    <Col sm={2}>
+                        <Button type="submit">Query</Button>
+                    </Col>
+                </FormGroup>
+            </Form>
         );
     }
 }
@@ -49,7 +59,9 @@ class VariantQuery extends React.Component {
 		super(props);
         this.state = {
             region: '',
-			      variants: []
+            validation: null,
+            helpMessage: 'Query by genomic coordinates, e.g. chr1:1-100',
+			variants: []
         };
 
         this.handleCoordinateQuery = this.handleCoordinateQuery.bind(this);
@@ -58,28 +70,23 @@ class VariantQuery extends React.Component {
     handleCoordinateQuery(searchRegion) {
         this.setState({ region: searchRegion });
 
-        //console.log("Search Query: " + this.state.region);
-        //console.log("Search Query 2: " + searchRegion);
-
         var coords = searchRegion.split(/[:-]/, 3);
 
         this.props.source.variants(coords[0], coords[1], coords[2]).then(
-          variants => {this.setState({ variants : variants });},
-          variants => {this.setState({ variants : [] });});
-        //console.log("variants: " + this.state.variants);
+          variants => this.setState({ variants : variants }),
+          err => {
+              this.setState({ validation: 'error', helpMessage: err.message, variants: [] }); 
+          }
+        );
     }
 
-	componentDidMount() {
-    // this.props.source.variants("chr16", 48258198, 48258198).then(
-    //   variants => {console.log(variants)})
-  }
 
 	render() {
         return (
             <div>
-                <CoordinateSearchBox searchRegion={this.state.region} handleCoordinateQuery={this.handleCoordinateQuery} />
+                <CoordinateSearchBox handleCoordinateQuery={this.handleCoordinateQuery} validation={this.state.validation} helpMessage={this.state.helpMessage} />
                 <div>
-				    <p>Listing variants in {this.state.region}</p>
+				    <p>Listing {this.state.variants.length} variants in {this.state.region}</p>
                     <VariantTable variants={this.state.variants} />
                 </div>
             </div>

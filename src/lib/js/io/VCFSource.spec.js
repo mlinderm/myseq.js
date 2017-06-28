@@ -47,6 +47,10 @@ describe('VCFSource', function() {
             expect(variant.position).to.equal(100);
             expect(variant.ref).to.equal("A");
             expect(variant.alt).to.deep.equal(["T"]);
+            expect(variant.genotype("NA12878")).to.equal("A/T");
+            
+            // We can also get the first genotype
+            expect(variant.genotype()).to.equal("A/T");
         });
     });
 
@@ -65,17 +69,17 @@ describe('VCFSource', function() {
         });
     });
 
-    it ('should return variants with matching alleles', function() {
+    it ('should return variant with matching alleles', function() {
       var source = getTestSource();
-      return source.variantByVariant('chr1',100,"A","T").then(variants => {
-        expect(variants).to.have.lengthOf(1);
+      return source.variant('chr1',100,"A","T").then(variant => {
+        expect(variant).to.not.be.undefined; //have.lengthOf(1);
       })
     });
 
-    it ('should filter variants with mismatching alleles', function() {
+    it('should filter variants with mismatching alleles', function() {
       var source = getTestSource();
-      return source.variantByVariant('chr1',100,"A","G").then(variants => {
-        expect(variants).to.have.lengthOf(0);
+      return source.variant('chr1',100,"A","G").then(variant => {
+        expect(variant).to.be.undefined;
       })
     });
     

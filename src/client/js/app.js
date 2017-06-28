@@ -5,22 +5,14 @@
 
 import React from 'react';
 import ReactDOM from 'react-dom';
+import { BrowserRouter, Route, Switch, Link } from 'react-router-dom';
 
 import VCFSource from '../../lib/js/io/VCFSource';
 
 import LoadVCFFile from './LoadVCFFile';
 import VariantQuery from './VariantQuery';
-import PhenotypeTable from './Phenotype';
-import SingleTraitTable from './SingleTraitTable';
+import { Traits } from './traits/Traits';
 
-var example = {
-  variant: { chr: 16, pos: 48258198, ref: "C", alt: "T"},
-  association: [
-    ["C/C", "Wet earwax"],
-    ["C/T", "Wet earwax, better BO"],
-    ["T/T", "Dry earwax"]
-  ],
-};
 
 class App extends React.Component {
 
@@ -36,20 +28,29 @@ class App extends React.Component {
 	}
 
 	render(): any {
+    if (this.state.source) {
+      return (
+        <BrowserRouter>
+          <div>
+          {/* This should be a nav that is always visible */}
+            <ul>
+              <li><Link to='/query'>Query Variants</Link></li>
+              <li><Link to='/traits'>Traits</Link></li>
+              <li><Link to='/traits/bitter'>Bitter Tasting</Link></li> 
+            </ul>
 
-		if (this.state.source) {
-			return (<div>
-								<VariantQuery source={this.state.source} />
-								----------------------------------
-								{/*<PhenotypeTable source={this.state.source}/>*/}
-								----------------------------------
-								<SingleTraitTable source={this.state.source} trait={example}/>
-							</div>);
-		} else {
-			return (<div>
-								<LoadVCFFile updateSource={ this.updateSource.bind(this) } />
-							</div>);
-		}
+            <Switch>
+              <Route path='/' exact render={rp => <VariantQuery {...rp} source={this.state.source} />} />
+              <Route path='/query' exact render={rp => <VariantQuery {...rp} source={this.state.source} />} />
+              <Route path='/traits' render={rp => <Traits {...rp} source={this.state.source} />} />
+            </Switch>
+          </div>
+        </BrowserRouter>
+      );
+    } else {
+      // Load VCF file if not already provided
+      return(<LoadVCFFile updateSource={ this.updateSource.bind(this) } />);
+    }
 	}
 
 	updateSource(source: VCFSource) {
@@ -69,7 +70,6 @@ function create(elOrId: string|Element) {
 
 var myseq = {
 	create: create
-
 };
 
 module.exports = myseq;

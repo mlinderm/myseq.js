@@ -57,26 +57,29 @@ class VCFSource {
         });
 	}
 
-	variants(ctg: string, pos: number, end: number) : Q.Promise<Array<VCFVariant>> {
-        var queryResults = this._reference
-            .then((ref) => { return ref.normalizeContig(ctg); })
-            .then((normalizedCtg) => { return this._source.records(normalizedCtg, pos, end); });
+  variants(ctg: string, pos: number, end: number) : Q.Promise<Array<VCFVariant>> {
+    var queryResults = this._reference
+      .then((ref) => { return ref.normalizeContig(ctg); })
+      .then((normalizedCtg) => { return this._source.records(normalizedCtg, pos, end); });
 
-        return Q.spread([queryResults, this._samples], (records, samples) => {
-			return _.chain(records)
-				.map(record => new VCFVariant(record, samples.length === 0 ? 8 : 9 + samples.length))
-				.value();
-		});
-	}
+    return Q.spread([queryResults, this._samples], (records, samples) => {
+      return _.chain(records)
+        .map(record => new VCFVariant(record, samples))
+        .value();
+    });
+  }
 
-	variantByVariant(ctg: string, pos: number, ref: string, alt: string, assumeRefRef: boolean = false) : Q.Promise<Array<VCFVariant>> {
+	variant(ctg: string, pos: number, ref: string, alt: string, assumeRefRef: boolean = false) : Q.Promise<VCFVariant> {
 		return this.variants(ctg, pos, pos).then(variants => {
 			// Filter for exact position and allele match, if none found and assumeRefRef
 			// is true, synthesize a variant with a Ref/Ref genotype
-			return _.filter(variants, variant => variant.ref == ref && variant.alt == alt)
+			return variants
+        .filter(variant => variant.ref == ref && variant.alt.indexOf(alt) != -1)
+        .shift()
 		})
 	}
 
+  /*
 	variantByVariantandGT(ctg: string, pos: number, ref: string, alt: string, geno: string, assocString: string) : Q.Promise<VCFVariant> {
 		return ([this.variants(ctg, pos, pos).then(variants => {
 			// Filter for exact position and allele match, if none found and assumeRefRef
@@ -84,6 +87,7 @@ class VCFSource {
 			return _.filter(variants, variant => variant.ref == ref && variant.alt == alt && variant.genotype() == geno)
 		}), [geno, assocString]])
 	}
+  */
 
 	// boolSearch(ctg: string, pos: number, ref: string, alt: string, geno: string, assocString: string) {
 	// 	if (this.variantByVariantandGT(ctg, pos, ref, alt, geno, assocString)[0].then(variants => {return(variants.length !== 0)}){
