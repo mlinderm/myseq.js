@@ -9,13 +9,13 @@ class ReferenceGenome {
     leadingChr : boolean;
     _seqDict : Object;
     _liftoverTo : Object;
-    
+
     constructor(shortName: string, leadingChr: boolean, seqDict: Object, liftoverTo) {
         // Not currently supported in Babel: https://github.com/babel/babel/issues/1088
         // if (new.target === ReferenceGenome) {
         //    throw new Error("Cannot construct ReferenceGenome instances directly");
         // }
-        
+
         this.shortName = shortName;
         this.leadingChr = leadingChr;
         this._seqDict = seqDict;
@@ -33,7 +33,7 @@ class ReferenceGenome {
 			}
             return lifted;
         }
-    }    
+    }
 }
 
 const hg19SeqDict = {
@@ -168,31 +168,31 @@ class Hg19Reference extends ReferenceGenome {
 }
 
 const b37SeqDict = {
-    "1": { LN:249250621, M5: "1b22b98cdeb4a9304cb5d48026a85128" }, 
-    "2": { LN:243199373, M5: "a0d9851da00400dec1098a9255ac712e" }, 
-    "3": { LN:198022430, M5: "fdfd811849cc2fadebc929bb925902e5" }, 
-    "4": { LN:191154276, M5: "23dccd106897542ad87d2765d28a19a1" }, 
-    "5": { LN:180915260, M5: "0740173db9ffd264d728f32784845cd7" }, 
-    "6": { LN:171115067, M5: "1d3a93a248d92a729ee764823acbbc6b" }, 
-    "7": { LN:159138663, M5: "618366e953d6aaad97dbe4777c29375e" }, 
-    "8": { LN:146364022, M5: "96f514a9929e410c6651697bded59aec" }, 
-    "9": { LN:141213431, M5: "3e273117f15e0a400f01055d9f393768" }, 
-    "10": { LN:135534747, M5: "988c28e000e84c26d552359af1ea2e1d" }, 
-    "11": { LN:135006516, M5: "98c59049a2df285c76ffb1c6db8f8b96" }, 
-    "12": { LN:133851895, M5: "51851ac0e1a115847ad36449b0015864" }, 
-    "13": { LN:115169878, M5: "283f8d7892baa81b510a015719ca7b0b" }, 
-    "14": { LN:107349540, M5: "98f3cae32b2a2e9524bc19813927542e" }, 
-    "15": { LN:102531392, M5: "e5645a794a8238215b2cd77acb95a078" }, 
-    "16": { LN:90354753, M5: "fc9b1a7b42b97a864f56b348b06095e6" }, 
-    "17": { LN:81195210, M5: "351f64d4f4f9ddd45b35336ad97aa6de" }, 
-    "18": { LN:78077248, M5: "b15d4b2d29dde9d3e4f93d1d0f2cbc9c" }, 
-    "19": { LN:59128983, M5: "1aacd71f30db8e561810913e0b72636d" }, 
-    "20": { LN:63025520, M5: "0dec9660ec1efaaf33281c0d5ea2560f" }, 
-    "21": { LN:48129895, M5: "2979a6085bfe28e3ad6f552f361ed74d" }, 
-    "22": { LN:51304566, M5: "a718acaa6135fdca8357d5bfe94211dd" }, 
-    "X": { LN:155270560, M5: "7e0e2e580297b7764e31dbc80c2540dd" }, 
-    "Y": { LN:59373566, M5: "1fa3474750af0948bdf97d5a0ee52e51" }, 
-    "MT": { LN:16569, M5: "c68f52674c9fb33aef52dcf399755519" }, 
+    "1": { LN:249250621, M5: "1b22b98cdeb4a9304cb5d48026a85128" },
+    "2": { LN:243199373, M5: "a0d9851da00400dec1098a9255ac712e" },
+    "3": { LN:198022430, M5: "fdfd811849cc2fadebc929bb925902e5" },
+    "4": { LN:191154276, M5: "23dccd106897542ad87d2765d28a19a1" },
+    "5": { LN:180915260, M5: "0740173db9ffd264d728f32784845cd7" },
+    "6": { LN:171115067, M5: "1d3a93a248d92a729ee764823acbbc6b" },
+    "7": { LN:159138663, M5: "618366e953d6aaad97dbe4777c29375e" },
+    "8": { LN:146364022, M5: "96f514a9929e410c6651697bded59aec" },
+    "9": { LN:141213431, M5: "3e273117f15e0a400f01055d9f393768" },
+    "10": { LN:135534747, M5: "988c28e000e84c26d552359af1ea2e1d" },
+    "11": { LN:135006516, M5: "98c59049a2df285c76ffb1c6db8f8b96" },
+    "12": { LN:133851895, M5: "51851ac0e1a115847ad36449b0015864" },
+    "13": { LN:115169878, M5: "283f8d7892baa81b510a015719ca7b0b" },
+    "14": { LN:107349540, M5: "98f3cae32b2a2e9524bc19813927542e" },
+    "15": { LN:102531392, M5: "e5645a794a8238215b2cd77acb95a078" },
+    "16": { LN:90354753, M5: "fc9b1a7b42b97a864f56b348b06095e6" },
+    "17": { LN:81195210, M5: "351f64d4f4f9ddd45b35336ad97aa6de" },
+    "18": { LN:78077248, M5: "b15d4b2d29dde9d3e4f93d1d0f2cbc9c" },
+    "19": { LN:59128983, M5: "1aacd71f30db8e561810913e0b72636d" },
+    "20": { LN:63025520, M5: "0dec9660ec1efaaf33281c0d5ea2560f" },
+    "21": { LN:48129895, M5: "2979a6085bfe28e3ad6f552f361ed74d" },
+    "22": { LN:51304566, M5: "a718acaa6135fdca8357d5bfe94211dd" },
+    "X": { LN:155270560, M5: "7e0e2e580297b7764e31dbc80c2540dd" },
+    "Y": { LN:59373566, M5: "1fa3474750af0948bdf97d5a0ee52e51" },
+    "MT": { LN:16569, M5: "c68f52674c9fb33aef52dcf399755519" },
     "GL000207.1": { LN:4262, M5: "f3814841f1939d3ca19072d9e89f3fd7" },
     "GL000226.1": { LN:15008, M5: "1c1b2cd1fccbc0a99b6a447fa24d1504" },
     "GL000229.1": { LN:19913, M5: "d0f40ec87de311d8e715b52e4c7062e1" },

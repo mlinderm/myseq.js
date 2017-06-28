@@ -16,6 +16,8 @@ class VCFVariant {
 
 	ids: Array<string>;
 
+  variantInfo;
+
   _genotypes: Map<string,string>;
 
 	constructor(line: string, samples: Array<string> = []) {
@@ -50,6 +52,18 @@ class VCFVariant {
       this._genotypes.set(samples[s], stringGT);
     }
 
+		this.variantInfo = undefined;
+	}
+
+ 	myVariantInfo(chr, pos, ref, alt) {
+		if (!this.variantInfo) {
+			const url = `https://myvariant.info/v1/query?q=chr${chr}%3A${pos}`;
+			fetch(url)
+				.then(response => response.json())
+				.then(data => data.hits
+					.map(hit => {if (hit._id === `chr${chr}:g.${pos}${ref}>${alt}`) { this.variantInfo = hit; } })
+				);
+		}
 	}
 
 	toString(): string {
@@ -59,6 +73,7 @@ class VCFVariant {
 	genotype(sample: string): string {
     return sample == undefined ? this._genotypes.values().next().value : this._genotypes.get(sample);
 	}
+
 };
 
 export default VCFVariant;
