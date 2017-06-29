@@ -8,209 +8,149 @@ import PropTypes from 'prop-types';
 
 import { Table } from 'react-bootstrap';
 
-//prop is single variant (VCFSource)
+import { intersperse } from './util/array';
+import { VCFVariant } from '../../lib/js/io/VCFVariant';
+
+
+function listOfRSIdLinks(
+  ids: Array<string>, 
+  urlFn = ((rsId) => { return `https://www.ncbi.nlm.nih.gov/projects/SNP/snp_ref.cgi?searchType=adhoc_search&type=rs&rs=${rsId.substring(2)}`; }),
+  empty = null
+) {
+  let links = ids.map(id => {
+    if (id.startsWith("rs")) {
+      return (
+        <a key={id} href={urlFn(id)} target="_blank">{id}</a>
+      );
+    } else {
+      return id;
+    }
+  });
+  
+  return (links.length > 0) ? intersperse(links, ", ") : empty;  
+}
+
+function clinvarLinks(variant: VCFVariant) {
+  // TODO: Handle multiple references
+  return (
+    <a 
+      href={`http://www.ncbi.nlm.nih.gov/clinvar?term=(${variant.position}%5BBase%20Position%20for%20Assembly%20GRCh37%5D)%20AND%20${variant.contig}%5BChromosome%5D`} 
+      target="_blank"
+    >ClinVar</a>
+  );
+}
+
+function ucscGenomeBrowserLinks(variant: VCFVariant) {
+  const chr = variant.contig;
+  const pos = variant.position;
+  // TODO: Handle multiple references
+  return (
+    <a 
+      href={`http://genome.ucsc.edu/cgi-bin/hgTracks?db=hg19&highlight=hg19.chr${chr}%3A${pos}-${pos}&position=chr${chr}%3A${pos}-${pos}`} 
+      target="_blank"
+    >UCSC Genome Browser</a>
+  );
+}
+
+function exacLinks(variant: VCFVariant) {
+  // TODO: Must be b37 
+  return (
+    <a
+      href={`http://exac.broadinstitute.org/variant/${variant.contig}-${variant.position}-${variant.ref}-${variant.alt}`}
+      target="_blank"
+    >ExAC</a>
+  );
+}
+
 class VariantRow extends React.Component {
   constructor(props) {
     super(props);
-
+  
     this.state = {
       rowHidden : true
     }
+    
+    this.handleRowClick = this.handleRowClick.bind(this);
   }
 
-  getSelectionText() {
-    var text = "";
-    if (window.getSelection) {
-        text = window.getSelection().toString();
-    } else if (document.selection && document.selection.type != "Control") {
-        text = document.selection.createRange().text;
-    }
-    return text;
-}
-
   handleRowClick() {
-    var text = this.getSelectionText();
-    //console.log(text);
-    if(text.length === 0) {
-      if (this.state.rowHidden === true) {
-        this.setState({
-          rowHidden : false
-        })
-      } else {
-        this.setState({
-          rowHidden : true
-        })
-      }
-    }
+    this.setState({ rowHidden : !this.state.rowHidden });
   }
 
   render() {
 
-    var chromosome = String(this.props.variantProp.contig).slice(3);
-    var position = this.props.variantProp.position;
-    var reference = this.props.variantProp.ref;
-    var alternate = this.props.variantProp.alt;
-    var rsids = String(this.props.variantProp.ids).slice(2);
-    var rsidsForMapping = this.props.variantProp.ids;
-    var genotype = this.props.variantProp.gt;
-    var variantInfo = this.props.variantProp.variantInfo;
-    this.props.variantProp.myVariantInfo(chromosome, position, reference, alternate);
-    //console.log(this.props.variantProp.variantInfo);
+    const variant = this.props.variant;
+    
+    // This doesn't work on Safari
+    //this.props.variant.myVariantInfo(chromosome, position, reference, alternate);
 
+    // Note, creating multiple tbody elements
     return (
       <tbody>
-        <tr style={(this.state.rowHidden === true) ?
-                  {backgroundColor:"#ffffff"} : {backgroundColor:"#D6F1F3"}
-                  }>
-          <td onClick={()=>this.handleRowClick()}>{this.props.variantProp.toString()}</td>
-          <td>
-            {rsidsForMapping.map(id=>(
-              (id !== ".") ? (
-                <div key={id}>
-                  <a
-                  href={"https://www.ncbi.nlm.nih.gov/projects/SNP/snp_ref.cgi?searchType=adhoc_search&type=rs&rs=" + id}
-                  target="_blank"
-                  >
-                    {id}
-                  </a>
-                  <br/>
-                </div>) :
-                <div key={id}>
-                None
-                </div>))}
-          </td>
-          <td onClick={()=>this.handleRowClick()}>{genotype}</td>
+        <tr style={(this.state.rowHidden) ? {backgroundColor:"#ffffff"} : {backgroundColor:"#D6F1F3"} }>
+          <td onClick={this.handleRowClick}>{variant.toString()}</td>
+          <td>{listOfRSIdLinks(variant.ids)}</td>
+          <td>{variant.genotype()}</td>
         </tr>
-        {(this.state.rowHidden === false) ?
+        {!this.state.rowHidden && 
           <tr>
             <td colSpan="3">
-              <div style={{float:"left"}}>
-                <ul>
-
-                  <li><a href={`http://www.ncbi.nlm.nih.gov/clinvar?term=%28%28%28${position}%5BBase%20Position%20for%20Assembly%20GRCh37%5D%29%20AND%20${chromosome}%5BChromosome%5D%29%29`} target="_blank">ClinVar</a></li>
-                  <li><a href={`http://genome.ucsc.edu/cgi-bin/hgTracks?db=hg19&highlight=hg19.chr${chromosome}%3A${position}-${position}&position=chr${chromosome}%3A${position}-${position}`} target="_blank">UCSC</a></li>
-                  <li><a href={`http://exac.broadinstitute.org/variant/${chromosome}-${position}-${reference}-${alternate}`} target="_blank">ExAC</a></li>
-
-                  <li>
-                    OMiM:<ul style={{display:"inline", padding:4}}>{rsidsForMapping.map(id=>(
-                      (id !== ".") ? (
-                        <li style={{display:"inline"}} key={id}>
-                        <a
-                        href={`https://www.omim.org/search/?search=rs${id.slice(2)}`}
-                        target="_blank"
-                        key={id}
-                        >
-                          {id}
-                        </a>&nbsp;</li>) :
-                        <li style={{display:"inline"}} key={id}>
-                        None
-                        </li>))}</ul>
-                  </li>
-
-                  <li>
-                    SNPedia:<ul style={{display:"inline", padding:4}}>{rsidsForMapping.map(id=>(
-                      (id !== ".") ? (
-                        <li style={{display:"inline"}} key={id}>
-                        <a
-                        href={`https://www.snpedia.com/index.php/Rs${id.slice(2)}(${reference};${alternate})`}
-                        target="_blank"
-                        key={id}
-                        >
-                          {id}
-                        </a>&nbsp;</li>) :
-                        <li style={{display:"inline"}} key={id}>
-                        None
-                        </li>))}</ul>
-                  </li>
-
-                  <li>
-                    dbSNP:<ul style={{display:"inline", padding:4}}>{rsidsForMapping.map(id=>(
-                      (id !== ".") ? (
-                        <li style={{display:"inline"}} key={id}>
-                        <a
-                        href={`https://www.ncbi.nlm.nih.gov/projects/SNP/snp_ref.cgi?searchType=adhoc_search&type=rs&rs=${id.slice(2)}`}
-                        target="_blank"
-                        key={id}
-                        >
-                          {id}
-                        </a>&nbsp;</li>) :
-                        <li style={{display:"inline"}} key={id}>
-                        None
-                        </li>))}</ul>
-                  </li>
-
+            <div style={{float:"left"}}>
+              <ul>
+                  <li>{clinvarLinks(variant)}</li>
+                  <li>{ucscGenomeBrowserLinks(variant)}</li>
+                  <li>{exacLinks(variant)}</li>
+                  <li>OMIM: {listOfRSIdLinks(variant.ids, (id) => { return `https://www.omim.org/search/?search=rs${id.slice(2)}`; }, "Insufficient data")}</li>
+                  <li>SNPedia: {listOfRSIdLinks(variant.ids, (id) => { return `https://www.snpedia.com/index.php/Rs${id.slice(2)}(${variant.ref};${variant.alt.shift()})`; }, "Insufficient data")}</li>
+                  <li>dbSNP: {listOfRSIdLinks(variant.ids)}</li>
                   <li><a href="https://www.google.com/" target="_blank">Google TODO</a></li>
                   <li><a href="http://myvariant.info/v1/api/#MyVariant.info-variant-query-service-GET-Variant-query-service" target="_blank">MyVariant.Info TODO</a></li>
-                </ul>
-              </div>
-              <div style={{float:"right", margin:"0 1.5%"}}>
-                Inbreeding Coefficient: {(variantInfo != null) ? variantInfo.exac_nontcga.inbreedingcoeff : "N/A"}
-              </div>
+              </ul>
+            </div>
+            <div style={{float:"right"}}>
+              Inbreeding Coefficient: {(variant.info) ? variant.info.exac_nontcga.inbreedingcoeff : "Insufficient data"}
+            </div>
             </td>
-
           </tr>
-          : <tr></tr>
         }
       </tbody>
-    )
+    );
   }
 }
 
-/* old entries and debug tools
-<li>{`rsid: ${rsids}`}</li>
-<li>{`chr: ${chromosome}`}</li>
-<li>{`position: ${position}`}</li>
-<li>ref and alt: {reference} {alternate}</li>
 
 
-<li>
-  <a
-    href={`https://www.snpedia.com/index.php/Rs${rsids}(${reference};${alternate})`}
-    target="_blank"
-  >
-    SNPedia single rsid
-  </a>
-</li>
 
-<li>
-  <a
-    href={`https://www.omim.org/entry/117800?search=rs${rsids}` }
-    target="_blank"
-  >
-    OMiM single rsid
-  </a>
-</li>
+VariantRow.propTypes = {
+  // TODO: Figure out why this check is failing
+  variant: PropTypes.instanceOf(VCFVariant)
+};
 
-*/
 
-//props are variant (VCF source)
+
 class VariantTable extends React.Component {
-    constructor(props) {
-        super(props);
-    }
+  constructor(props) {
+    super(props);
+  }
 
-    render() {
-        return (
-            <Table bordered={true}>
-                <thead>
-                    <tr>
-                      <th>Variant</th>
-                      <th>Id</th>
-                      <th>Genotype</th>
-                    </tr>
-                </thead>
-                {this.props.variants.map(variant => (
-                <VariantRow variantProp={variant} key={variant.toString()}/>
-                ))}
-            </Table>
-        );
-    }
+  render() {
+    return (
+      <Table bordered={true}>
+        <thead>
+          <tr><th>Variant</th><th>Id</th><th>Genotype</th></tr>
+        </thead>
+        {this.props.variants.map(variant => (
+          <VariantRow key={variant.toString()} variant={variant} />
+        ))}
+      </Table>
+    );
+  }
 }
 
 
 
 VariantTable.propTypes = {
-    variants: PropTypes.array
+  variants: PropTypes.array
 };
 
 export default VariantTable;

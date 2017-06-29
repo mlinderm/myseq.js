@@ -52,8 +52,8 @@ class LoadVCFFile extends React.Component {
 
 		this.handleFiles = this.handleFiles.bind(this);
 		this.handleURLChange = this.handleURLChange.bind(this);
-        this.handleURLSubmit = this.handleURLSubmit.bind(this);
-        this.updateAndSubmitURL = this.updateAndSubmitURL.bind(this);
+    this.handleURLSubmit = this.handleURLSubmit.bind(this);
+    this.updateAndSubmitURL = this.updateAndSubmitURL.bind(this);
 	}
 
 	handleFiles(e) {

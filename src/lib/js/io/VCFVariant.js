@@ -75,6 +75,6 @@ class VCFVariant {
     return sample == undefined ? this._genotypes.values().next().value : this._genotypes.get(sample);
 	}
 
-};
+}
 
-export default VCFVariant;
+module.exports = VCFVariant;
