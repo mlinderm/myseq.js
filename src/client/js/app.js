@@ -14,7 +14,7 @@ import VariantQuery from './VariantQuery';
 import { Traits } from './traits/Traits';
 
 import PhenotypeTable from './Phenotype';
-import MultiTraitTable from './TraitTable';
+//import MultiTraitTable from './TraitTable';
 import RiskTable from './RiskTable';
 
 var example = [{
@@ -80,22 +80,6 @@ class App extends React.Component {
       // Load VCF file if not already provided
       return(<LoadVCFFile updateSource={ this.updateSource.bind(this) } />);
     }
-/*
-		if (this.state.source) {
-			return (<div style={{"margin":30, "padding":30}}>
-								<VariantQuery source={this.state.source} />
-								----------------------------------
-								<MultiTraitTable source={this.state.source} traits={example} />
-                <p>Yellow means genotype is present.</p>
-                ----------------------------------
-                <RiskTable source={this.state.source} disease={exampleRisk} />
-							</div>);
-		} else {
-			return (<div>
-								<LoadVCFFile updateSource={ this.updateSource.bind(this) } />
-							</div>);
-		}
-*/
 	}
 
 	updateSource(source: VCFSource) {

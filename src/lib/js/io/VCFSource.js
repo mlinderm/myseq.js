@@ -73,9 +73,18 @@ class VCFSource {
 		return this.variants(ctg, pos, pos).then(variants => {
 			// Filter for exact position and allele match, if none found and assumeRefRef
 			// is true, synthesize a variant with a Ref/Ref genotype
-			return variants
+			let found_variant = variants
         .filter(variant => variant.ref == ref && variant.alt.indexOf(alt) != -1)
         .shift()
+      if (!found_variant && assumeRefRef) {
+        return this._samples.then(samples => {
+          let synth_record = `${ctg}\t${pos}\t.\t${ref}\t${alt}\t.\t.\t.`
+          if (samples.length > 0)
+            synth_record += "\tGT" + "\t0/0".repeat(samples.length);
+          return new VCFVariant(synth_record, samples, true /* isSynth */);
+        });
+      } else
+        return found_variant;
 		})
 	}
 

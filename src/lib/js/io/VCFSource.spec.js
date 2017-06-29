@@ -39,7 +39,7 @@ describe('VCFSource', function() {
 
             var variant = variants[0];
             expect(variant._line).to.equal('chr1\t100\trs1\tA\tT\t100.0\tPASS\tAC=1;AN=2\tGT\t0/1');
-            expect(variant._fields.length).to.equal(10);
+            expect(variant.isSynth).to.be.false;
 
             expect(variant.toString()).to.equal("chr1:100A>T");
 
@@ -72,7 +72,7 @@ describe('VCFSource', function() {
     it ('should return variant with matching alleles', function() {
       var source = getTestSource();
       return source.variant('chr1',100,"A","T").then(variant => {
-        expect(variant).to.not.be.undefined; //have.lengthOf(1);
+        expect(variant).to.not.be.undefined;
       })
     });
 
@@ -88,5 +88,15 @@ describe('VCFSource', function() {
         return source._reference.then(ref => {
             expect(ref).to.equal(Ref.b37Reference);
         });
+    });
+    
+    it('should generate REF/REF genotype if requested and variant not found', function() {
+      var source = getTestSource();
+      return source.variant('chr1',100,"A","G", true).then(variant => {
+        expect(variant).to.not.be.undefined;
+        expect(variant.isSynth).to.be.true;
+        expect(variant.toString()).to.equal("chr1:100A>G");
+        expect(variant.genotype("NA12878")).to.equal("A/A");
+      })    
     });
 });

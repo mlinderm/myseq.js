@@ -10,6 +10,7 @@ import SingleVariantTrait from './SingleVariantTrait';
 import VCFSource from '../../../lib/js/io/VCFSource';
 
 const earwax = {
+  title: "Earwax Consistency",
   variant: { chr: 16, pos: 48258198, ref: "C", alt: "T"},
   association: [
     { genotype: "C/C", phenotype: "Wet earwax" },
