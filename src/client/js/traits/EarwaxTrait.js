@@ -11,7 +11,7 @@ import VCFSource from '../../../lib/js/io/VCFSource';
 
 const earwax = {
   title: "Earwax Consistency",
-  variant: { chr: 16, pos: 48258198, ref: "C", alt: "T"},
+  variant: { chr: '16', pos: 48258198, ref: "C", alt: "T"},
   association: [
     { genotype: "C/C", phenotype: "Wet earwax" },
     { genotype: "C/T", phenotype: "Wet earwax" },

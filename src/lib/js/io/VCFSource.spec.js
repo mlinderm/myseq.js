@@ -1,6 +1,8 @@
 'use strict';
 
-import {expect} from 'chai';
+import chai from 'chai';
+import chaiAsPromised from 'chai-as-promised';
+let expect = chai.use(chaiAsPromised).expect;
 
 import {LocalFileReader} from './FileReaders';
 import * as Ref from '../features/ReferenceGenome';
@@ -97,6 +99,19 @@ describe('VCFSource', function() {
         expect(variant.isSynth).to.be.true;
         expect(variant.toString()).to.equal("chr1:100A>G");
         expect(variant.genotype("NA12878")).to.equal("A/A");
-      })    
+      });
     });
+    
+    it('should catch errors if ref/ref requested', function() {
+      var source = getTestSource();
+      expect(source.variant('7', 141672604, 'T', 'C')).to.be.rejected;
+      
+      return source.variant('7', 141672604, 'T', 'C', true).then(variant => {
+        expect(variant).to.not.be.undefined;
+        expect(variant.isSynth).to.be.true;
+        expect(variant.toString()).to.equal("chr7:141672604T>C");
+      });
+
+    });
+
 });

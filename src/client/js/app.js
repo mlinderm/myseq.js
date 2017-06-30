@@ -12,43 +12,14 @@ import VCFSource from '../../lib/js/io/VCFSource';
 import LoadVCFFile from './LoadVCFFile';
 import VariantQuery from './VariantQuery';
 import { Traits } from './traits/Traits';
-
-import PhenotypeTable from './Phenotype';
-//import MultiTraitTable from './TraitTable';
-import RiskTable from './RiskTable';
-
-var example = [{
-  name: "Earwax",
-  variant: { chr: 16, pos: 48258198, ref: "C", alt: "T"},
-  association: [
-    ["C/C", "Wet earwax"],
-    ["C/T", "Wet earwax, better BO"],
-    ["T/T", "Dry earwax"]
-  ]
-},
-{
-  name: "Asparagus Anosmia",
-  variant: { chr: 1, pos: 248496863, ref: "T", alt: "C"},
-  association: [
-    ["A/A", "Pee smells like asparagus"]
-  ]
-}
-];
-
-var exampleRisk = [
-  {'AC': '2', 'OR': '2.17', 'chr': 'chr7', 'LR': '1.991', 'genotype': 'C/C', 'AF': '0.178', 'alt': 'C', 'ref': 'T', 'pos': '141672604', 'id': 'rs10246939'},
-  {'AC': '1', 'OR': '1.18', 'chr': 'chr7', 'LR': '1.083', 'genotype': 'T/C', 'AF': '0.178', 'alt': 'C', 'ref': 'T', 'pos': '141672604', 'id': 'rs10246939'},
-  {'AC': '0', 'OR': '1', 'chr': 'chr7', 'LR': '0.918', 'genotype': 'T/T', 'AF': '0.178', 'alt': 'C', 'ref': 'T', 'pos': '141672604', 'id': 'rs10246939'},
-  {'AC': '0', 'OR': '1', 'chr': 'chr16', 'LR': '0.918', 'genotype': 'C/T', 'AF': '0.178', 'alt': 'T', 'ref': 'C', 'pos': '48258198', 'id': 'rs17822931'},
-  {'AC': '0', 'OR': '1', 'chr': 'chr7', 'LR': '0.918', 'genotype': 'C/T', 'AF': '0.178', 'alt': 'T', 'ref': 'C', 'pos': '48258198', 'id': 'rs17822931'}
-];
+import { Risks } from './risks/Risks';
 
 class App extends React.Component {
 
 	constructor() {
 		super();
 		this.state = {
-			source: null
+			source: undefined
 		};
 	}
 
@@ -61,17 +32,18 @@ class App extends React.Component {
       return (
         <BrowserRouter>
           <div>
-          {/* This should be a nav that is always visible */}
+            {/* This should be a nav that is always visible */}
             <ul>
               <li><Link to='/query'>Query Variants</Link></li>
-              <li><Link to='/traits'>Traits</Link></li>
-              <li><Link to='/traits/bitter'>Bitter Tasting</Link></li> 
+              <li><Link to='/traits'>Physical Traits</Link></li>
+              <li><Link to='/risks'>Common Disease Risk</Link></li>
             </ul>
 
             <Switch>
               <Route path='/' exact render={rp => <VariantQuery {...rp} source={this.state.source} />} />
               <Route path='/query' exact render={rp => <VariantQuery {...rp} source={this.state.source} />} />
               <Route path='/traits' render={rp => <Traits {...rp} source={this.state.source} />} />
+              <Route path='/risks' render={rp => <Risks {...rp} source={this.state.source} />} />
             </Switch>
           </div>
         </BrowserRouter>

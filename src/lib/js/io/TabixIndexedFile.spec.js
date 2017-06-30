@@ -2,7 +2,7 @@
 
 import chai from 'chai';
 import chaiAsPromised from 'chai-as-promised';
-let expect = chai.use(chaiAsPromised).expect
+let expect = chai.use(chaiAsPromised).expect;
 
 import {LocalFileReader} from './FileReaders';
 import TabixIndexedFile from './TabixIndexedFile';

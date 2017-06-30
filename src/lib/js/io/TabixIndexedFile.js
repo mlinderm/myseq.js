@@ -42,6 +42,8 @@
 
 'use strict';
 
+import * as Errors from '../util/errors';
+
 import _ from 'underscore';
 import Q from 'q';
 import jDataView from 'jdataview';
@@ -338,7 +340,7 @@ class TabixIndexedFile {
 		return this._contigs.then(contigs => {
 			var indices = contigs.get(ctg);
 			if (indices === undefined) {
-				throw new RangeError('Unknown contig: ' + ctg);
+				throw new Errors.ContigNotInIndexError('Unknown contig: ' + ctg);
 			}
 
 			var bins = reg2bins(pos, end + 1);

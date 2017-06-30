@@ -9,7 +9,7 @@ import PropTypes from 'prop-types';
 import { Table } from 'react-bootstrap';
 
 import { intersperse } from './util/array';
-import { VCFVariant } from '../../lib/js/io/VCFVariant';
+import VCFVariant from '../../lib/js/io/VCFVariant';
 
 
 function listOfRSIdLinks(
@@ -65,10 +65,9 @@ function exacLinks(variant: VCFVariant) {
 class VariantRow extends React.Component {
   constructor(props) {
     super(props);
-  
     this.state = {
       rowHidden : true
-    }
+    };
     
     this.handleRowClick = this.handleRowClick.bind(this);
   }
@@ -122,8 +121,7 @@ class VariantRow extends React.Component {
 
 
 VariantRow.propTypes = {
-  // TODO: Figure out why this check is failing
-  variant: PropTypes.instanceOf(VCFVariant)
+  variant: PropTypes.instanceOf(VCFVariant).isRequired
 };
 
 

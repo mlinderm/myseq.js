@@ -1,7 +1,6 @@
 /**
  * @flow
  */
-
 'use strict';
 
 class VCFVariant {
@@ -16,7 +15,7 @@ class VCFVariant {
 
 	ids: Array<string>;
 
-  variantInfo;
+  variantInfo: object;
 
   _genotypes: Map<string,string>;
 
@@ -38,7 +37,7 @@ class VCFVariant {
       let end_of_GT = fields[s+9].indexOf(":");
       let GT = end_of_GT === -1 ? fields[s+9] : fields[s+9].substring(0, end_of_GT);
       
-      // Normalize alleles, while ignoring the distinction bewteen '/' and '|'
+      // Translate alleles, while ignoring the distinction bewteen '/' and '|'
       let stringGT = GT
         .split(/[/|]/)
         .map(allele => {
@@ -71,10 +70,13 @@ class VCFVariant {
 		return `${this.contig}:${this.position}${this.ref}>${this.alt.join(',')}`
 	}
 
+  /**
+   * If no sample is specified, return the 1st genotype
+   */
 	genotype(sample: string): string {
     return sample == undefined ? this._genotypes.values().next().value : this._genotypes.get(sample);
 	}
 
 }
 
-module.exports = VCFVariant;
+export default VCFVariant;
