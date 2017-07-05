@@ -57,6 +57,10 @@ class VCFSource {
     });
 	}
 
+  samples() : Q.Promise<Array<string>> {
+    return this._samples;
+  }
+
   variants(ctg: string, pos: number, end: number) : Q.Promise<Array<VCFVariant>> {
     var queryResults = this._reference
       .then((ref) => { return ref.normalizeContig(ctg); })

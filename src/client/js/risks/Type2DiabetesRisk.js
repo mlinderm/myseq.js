@@ -22,8 +22,9 @@ class Type2DiabetesRisk extends React.Component {
   }
   
   render() {
+    const { settings, source } = this.props;
     return (
-      <RiskTable source={this.props.source} riskVariants={t2d}>
+      <RiskTable settings={settings} source={source} riskVariants={t2d}>
         <p>TODO: Background on this particular phenotype</p>
       </RiskTable>
     );
@@ -31,7 +32,8 @@ class Type2DiabetesRisk extends React.Component {
 }
 
 Type2DiabetesRisk.propTypes = {
-	source: PropTypes.instanceOf(VCFSource),
+  settings: PropTypes.object.isRequired,
+	source: PropTypes.instanceOf(VCFSource).isRequired
 };
 
 export default Type2DiabetesRisk;

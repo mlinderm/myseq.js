@@ -17,17 +17,19 @@ class Risks extends React.Component {
   }
 
   render() : any {
+    const { settings, source } = this.props;
     return (
       <Switch>
-        <Route exact path='/risks' render={rp => <RisksOverview {...rp} source={this.props.source} />} />
-        <Route path='/risks/t2d' render={rp => <Type2DiabetesRisk {...rp} source={this.props.source} />} />
+        <Route exact path='/risks' render={rp => <RisksOverview {...rp} source={source} settings={settings} />} />
+        <Route path='/risks/t2d' render={rp => <Type2DiabetesRisk {...rp} source={source} settings={settings} />} />
       </Switch>
     );
   }
 }  
 
 Risks.propTypes = {
-	source: PropTypes.instanceOf(VCFSource)
+  settings: PropTypes.object.isRequired,
+	source: PropTypes.instanceOf(VCFSource).isRequired
 };
 
 
@@ -47,7 +49,6 @@ class RisksOverview extends React.Component {
 }
 
 RisksOverview.propTypes = {
-	source: PropTypes.instanceOf(VCFSource)
 };
 
 export {

@@ -26,8 +26,9 @@ class EarwaxTrait extends React.Component {
   }
   
   render() {
+    const { settings, source } = this.props;
     return (
-      <SingleVariantTrait source={this.props.source} trait={earwax}>
+      <SingleVariantTrait settings={settings} source={source} trait={earwax}>
         <p>TODO: Background on this particular phenotype</p>
       </SingleVariantTrait>
     );
@@ -35,7 +36,8 @@ class EarwaxTrait extends React.Component {
 }
 
 EarwaxTrait.propTypes = {
-	source: PropTypes.instanceOf(VCFSource),
+  settings: PropTypes.object.isRequired,
+	source: PropTypes.instanceOf(VCFSource).isRequired
 };
 
 export default EarwaxTrait;

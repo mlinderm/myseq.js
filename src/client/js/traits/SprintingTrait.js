@@ -25,8 +25,9 @@ class SprintingTrait extends React.Component {
   }
   
   render() {
+    const { settings, source } = this.props;
     return (
-      <SingleVariantTrait source={this.props.source} trait={sprinting}>
+      <SingleVariantTrait settings={settings} source={source} trait={sprinting}>
         <p>TODO: Background on this particular phenotype</p>
       </SingleVariantTrait>
     );
@@ -34,7 +35,8 @@ class SprintingTrait extends React.Component {
 }
 
 SprintingTrait.propTypes = {
-	source: PropTypes.instanceOf(VCFSource),
+  settings: PropTypes.object.isRequired,
+	source: PropTypes.instanceOf(VCFSource).isRequired
 };
 
 export default SprintingTrait;

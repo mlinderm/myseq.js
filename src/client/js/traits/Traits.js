@@ -19,19 +19,27 @@ class Traits extends React.Component {
   }
 
   render() : any {
+    const { source, settings } = this.props;
     return (
       <Switch>
-        <Route exact path='/traits' render={rp => <TraitsOverview {...rp} source={this.props.source} />} />
-        <Route path='/traits/earwax' render={rp => <EarwaxTrait {...rp} source={this.props.source} />} />
-        <Route path='/traits/asparagus_anosmia' render={rp => <AsparagusAnosmiaTrait {...rp} source={this.props.source} />} />
-        <Route path='/traits/sprinting' render={rp => <SprintingTrait {...rp} source={this.props.source} />} />
+        <Route exact path='/traits' component={TraitsOverview} />
+        <Route path='/traits/earwax' render={rp => 
+          <EarwaxTrait {...rp} source={source} settings={settings} />
+        } />
+        <Route path='/traits/asparagus_anosmia' render={rp => 
+          <AsparagusAnosmiaTrait {...rp} source={source} settings={settings} />
+        } />
+        <Route path='/traits/sprinting' render={rp => 
+          <SprintingTrait {...rp} source={source} settings={settings} />
+        } />
       </Switch>
     );
   }
 }  
 
 Traits.propTypes = {
-	source: PropTypes.instanceOf(VCFSource)
+  settings: PropTypes.object.isRequired,
+	source: PropTypes.instanceOf(VCFSource).isRequired
 };
 
 
@@ -53,7 +61,6 @@ class TraitsOverview extends React.Component {
 }
 
 TraitsOverview.propTypes = {
-	source: PropTypes.instanceOf(VCFSource)
 };
 
 export {

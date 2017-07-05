@@ -22,16 +22,17 @@ class SingleVariantTrait extends React.Component {
 
   componentWillMount() {
     // Use assumeRefRef to always get variant
+    const { sample, assumeRefRef } = this.props.settings;
     const query = this.props.trait.variant;
-    this.props.source.variant(query.chr, query.pos, query.ref, query.alt, true).then(variant => {
+    this.props.source.variant(query.chr, query.pos, query.ref, query.alt, assumeRefRef).then(variant => {
       if (variant) {
-        // TODO: Enable selecting genotype by sample
-        this.setState({ genotype: variant.genotype() });
+        this.setState({ genotype: variant.genotype(sample) });
       }
     });
   }
 
   render() {
+    const { traits } = this.props;
     return (
       <div>
       <h3>{ this.props.trait.title }</h3>
@@ -59,6 +60,7 @@ class SingleVariantTrait extends React.Component {
 }
 
 SingleVariantTrait.propTypes = {
+  settings: PropTypes.object.isRequired,
 	source: PropTypes.instanceOf(VCFSource).isRequired,
   trait: PropTypes.object.isRequired,
   children: PropTypes.element.isRequired

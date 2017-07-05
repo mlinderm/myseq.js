@@ -20,12 +20,13 @@ class RiskTable extends React.Component {
   }
 
   componentWillMount() {
+    const { sample, assumeRefRef } = this.props.settings;
     let allVariants= Q.all(this.props.riskVariants.map(variant => {
       let query = variant.variant; 
       
       // Return promise for individual query variant
       return this.props.source.variant(
-        query.chr, query.pos, query.ref, query.alt, true /* assumeRefRef */      
+        query.chr, query.pos, query.ref, query.alt, assumeRefRef      
       );
     }));
     
@@ -33,7 +34,7 @@ class RiskTable extends React.Component {
       let localGTAndLR = this.state.gtAndLR;
       foundVariants.map((variant, index) => {
         if (variant) {
-          let gt = variant.genotype();
+          let gt = variant.genotype(sample);
           localGTAndLR[index] = { GT: gt, LR: this.props.riskVariants[index].LR[gt] };
         }
       });
@@ -71,9 +72,10 @@ class RiskTable extends React.Component {
 }
 
 RiskTable.propTypes = {
+  settings: PropTypes.object.isRequired,
   source: PropTypes.instanceOf(VCFSource).isRequired,
-  riskVariants: PropTypes.array,
-  children: PropTypes.element.isRequired
+  riskVariants: PropTypes.array.isRequired,
+  children: PropTypes.element
 };
 
 export default RiskTable;

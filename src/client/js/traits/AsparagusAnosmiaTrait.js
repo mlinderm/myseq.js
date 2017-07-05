@@ -25,8 +25,9 @@ class AsparagusAnosmiaTrait extends React.Component {
   }
   
   render() {
+    const { settings, source } = this.props;
     return (
-      <SingleVariantTrait source={this.props.source} trait={asparagus}>
+      <SingleVariantTrait settings={settings} source={source} trait={asparagus}>
         <p>TODO: Background on this particular phenotype</p>
       </SingleVariantTrait>
     );
@@ -34,7 +35,8 @@ class AsparagusAnosmiaTrait extends React.Component {
 }
 
 AsparagusAnosmiaTrait.propTypes = {
-	source: PropTypes.instanceOf(VCFSource),
+  settings: PropTypes.object.isRequired,
+	source: PropTypes.instanceOf(VCFSource).isRequired
 };
 
 export default AsparagusAnosmiaTrait;

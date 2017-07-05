@@ -84,10 +84,12 @@ class VariantQuery extends React.Component {
       <div>
         <CoordinateSearchBox handleCoordinateQuery={this.handleCoordinateQuery} validation={this.state.validation} helpMessage={this.state.helpMessage} />
         {this.state.region && 
-          <div>
-            <p>Listing {this.state.variants.length} variants in {this.state.region}</p>
-            <VariantTable variants={this.state.variants} />
-          </div>
+          <Row>
+            <Col sm={6}>
+              <p>Listing {this.state.variants.length} variants in {this.state.region}</p>
+              <VariantTable variants={this.state.variants} />
+            </Col>
+          </Row>
         }
       </div>
     );
