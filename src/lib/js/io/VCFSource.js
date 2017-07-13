@@ -67,9 +67,12 @@ class VCFSource {
       .then((normalizedCtg) => { return this._source.records(normalizedCtg, pos, end); });
 
     return Q.spread([queryResults, this._samples], (records, samples) => {
-      return _.chain(records)
-        .map(record => new VCFVariant(record, samples))
-        .value();
+      return records.map(record => new VCFVariant(record, samples));
+    }, err => {
+      if (err instanceof Errors.ContigNotInIndexError)
+        return [];
+      else
+        throw err;
     });
   }
 
@@ -93,12 +96,7 @@ class VCFSource {
         return this._synthVariant(ctg, pos, ref, alt);
       } else
         return found_variant;
-		}, err => {
-      if (assumeRefRef && err instanceof Errors.ContigNotInIndexError)
-        return this._synthVariant(ctg, pos, ref, alt);
-      else
-        throw err;
-    });
+		});
 	}
 
 }
