@@ -20,7 +20,7 @@ class SingleVariantTrait extends React.Component {
     };
   };
 
-  componentWillMount() {
+  componentDidMount() {
     // Use assumeRefRef to always get variant
     const { sample, assumeRefRef } = this.props.settings;
     const query = this.props.trait.variant;
@@ -42,8 +42,8 @@ class SingleVariantTrait extends React.Component {
         </thead>
         <tbody>
           { this.props.trait.association.map(assoc =>
-            <tr 
-              key={assoc.genotype}  
+            <tr
+              key={assoc.genotype}
               style={ (this.state.genotype === assoc.genotype) ? {backgroundColor:"#ffff99"} : {backgroundColor:"#ffffff"}
  }
             >

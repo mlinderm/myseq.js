@@ -15,7 +15,7 @@ import VCFSource from '../../../lib/js/io/VCFSource';
 
 class Traits extends React.Component {
   constructor(props) {
-    super(props);   
+    super(props);
   }
 
   render() : any {
@@ -23,19 +23,19 @@ class Traits extends React.Component {
     return (
       <Switch>
         <Route exact path='/traits' component={TraitsOverview} />
-        <Route path='/traits/earwax' render={rp => 
+        <Route path='/traits/earwax' render={rp =>
           <EarwaxTrait {...rp} source={source} settings={settings} />
         } />
-        <Route path='/traits/asparagus_anosmia' render={rp => 
+        <Route path='/traits/asparagus_anosmia' render={rp =>
           <AsparagusAnosmiaTrait {...rp} source={source} settings={settings} />
         } />
-        <Route path='/traits/sprinting' render={rp => 
+        <Route path='/traits/sprinting' render={rp =>
           <SprintingTrait {...rp} source={source} settings={settings} />
         } />
       </Switch>
     );
   }
-}  
+}
 
 Traits.propTypes = {
   settings: PropTypes.object.isRequired,
@@ -45,16 +45,18 @@ Traits.propTypes = {
 
 class TraitsOverview extends React.Component {
   constructor(props) {
-    super(props);   
+    super(props);
   }
 
   render(): any {
     return (
       <div>
         <p>A description of traits in the genome:</p>
-        <Link to='/traits/earwax'>Earwax</Link>
-        <Link to='/traits/asparagus_anosmia'>Asparagus Anosmia</Link>
-        <Link to='/traits/sprinting'>Sprinting Performance</Link>
+        <ul>
+          <li><Link to='/traits/earwax'>Earwax</Link></li>
+          <li><Link to='/traits/asparagus_anosmia'>Asparagus Anosmia</Link></li>
+          <li><Link to='/traits/sprinting'>Sprinting Performance</Link></li>
+        </ul>
       </div>
     );
   }
@@ -64,5 +66,5 @@ TraitsOverview.propTypes = {
 };
 
 export {
-  Traits  
+  Traits
 };

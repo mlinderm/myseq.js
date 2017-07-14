@@ -15,7 +15,7 @@ class CoordinateSearchBox extends React.Component {
   constructor(props) {
     super(props);
 
-    this.state = { 
+    this.state = {
       searchRegion: '',
     };
 
@@ -59,7 +59,7 @@ class VariantQuery extends React.Component {
     this.state = {
       region: undefined,
       validation: null,
-      helpMessage: 'Query by genomic coordinates, e.g. chr1:1-100',
+      helpMessage: 'Query by genomic coordinates, e.g. chr1:1-100, chr7:141672604-141672604',
       variants: []
     };
 
@@ -74,7 +74,7 @@ class VariantQuery extends React.Component {
     this.props.source.variants(coords[0], coords[1], coords[2]).then(
       variants => this.setState({ variants : variants }),
       err => {
-        this.setState({ validation: 'error', helpMessage: err.message, variants: [] }); 
+        this.setState({ validation: 'error', helpMessage: err.message, variants: [] });
       }
     );
   }
@@ -83,7 +83,7 @@ class VariantQuery extends React.Component {
     return (
       <div>
         <CoordinateSearchBox handleCoordinateQuery={this.handleCoordinateQuery} validation={this.state.validation} helpMessage={this.state.helpMessage} />
-        {this.state.region && 
+        {this.state.region &&
           <Row>
             <Col sm={6}>
               <p>Listing {this.state.variants.length} variants in {this.state.region}</p>
