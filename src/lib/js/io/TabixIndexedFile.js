@@ -228,7 +228,7 @@ function optimizeChunks(chunks: Array<Chunk>, minimumOffset: VirtualOffset): Arr
     });
 
     var newChunks = [];
-    for(let chunk of chunks) {
+    for (let chunk of chunks) {
         if (chunk.end.compareTo(minimumOffset) < 0) {
             // Linear index optimization
             continue;
@@ -278,63 +278,115 @@ class TabixIndexedFile {
 	_source: AbstractFileReader;
 	_contigs: Q.Promise<Map<string,Map<number,Object>>>;
 	_overlapFunction: Q.Promise<{(line: string, ctg: string, pos: number, end: number): boolean;}>;
-    _commentCharacter: Q.Promise<string>;
+  _commentCharacter: Q.Promise<string>;
 
-	constructor(dataSource: AbstractFileReader, indexSource: AbstractFileReader) {
-		var overlapFunction = Q.defer();
-        var commentCharacter = Q.defer();
-		this._source = dataSource; 
-		this._contigs = indexSource.bytes().then(buffer => {
-			var uncompressedIndex = inflateGZip(buffer);
-			var parser = new jBinary(
-				new jDataView(uncompressedIndex, 0, undefined, true /* little endian */), 
-				TABIX_FORMAT
-			);
-			
-            // Check for valid magic string
-            if (parser.read(TABIX_FORMAT.header.magic, 0) !== "TBI\x01") {
-                throw new Error("Invalid index file");
-            }
-          
-            // Parse entire index file
-            var index = parser.readAll();
-            
+  constructor(dataSource: AbstractFileReader, indexSource: AbstractFileReader) {
+    var overlapFunction = Q.defer();
+    var commentCharacter = Q.defer();
+    this._source = dataSource; 
+    this._contigs = indexSource.bytes().then(buffer => {
+      var uncompressedIndex = inflateGZip(buffer);
+      console.log("Done decompressing");
+      let view = new jDataView(uncompressedIndex, 0, undefined, true /* little endian */);
+      var parser = new jBinary(view, TABIX_FORMAT);
 
-			// Set overlap function based on index header
-			var format = index.head.format;
-			switch (format) {
-				case 2:
-					overlapFunction.resolve(vcfLineInRegion);
-					break;
-				default:
-					overlapFunction.resolve(genericLineInRegion);
-					break;
-			}
+      // Check for valid magic string
+      if (parser.read(TABIX_FORMAT.header.magic, 0 /* Don't advance pointer */) !== "TBI\x01") {
+        throw new Error("Invalid index file");
+      }
 
-            // Extract comment character
-            commentCharacter.resolve(String.fromCharCode(index.head.meta));
+      // Parse header with metadata
+      let head = parser.read(TABIX_FORMAT.header)
 
-			// Convert tabix names string to array
-			index.head.names = index.head.names.replace(/\0+$/, '').split('\0');	
-			
-			// Create hash of contig names with hash of bins
-			var contigs = new Map();
-            for (var r=0; r<index.head.n_ref; ++r) {
-                var bins = new Map();
-                var contig = index.indexseq[r];
-                for (var b=0; b<contig.n_bin; ++b) {
-                    var bin = contig.bins[b];
-                    bins.set(bin.bin, bin.chunks);		
-                }
-                contig.bins = bins;
+      // Set overlap function based on index header
+      let format = head.format;
+      switch (format) {
+        case 2:
+          overlapFunction.resolve(vcfLineInRegion);
+          break;
+        default:
+          overlapFunction.resolve(genericLineInRegion);
+          break;
+      }
 
-                contigs.set(index.head.names[r], contig);
-            }
-            return contigs;
-        });
-        this._overlapFunction = overlapFunction.promise;
-        this._commentCharacter = commentCharacter.promise;
-	}
+      // Extract comment character
+      commentCharacter.resolve(String.fromCharCode(head.meta));
+    
+      // Compute contig indices to faciliate independent parsing
+      let names = head.names.replace(/\0+$/, '').split('\0');
+      let indexParsingPromises = [];
+      
+      for (let r=0; r < head.n_ref; ++r) {
+        let contigIndexStart = view.tell();
+        indexParsingPromises.push(Q.fcall(() => {
+          return parser.read(TABIX_FORMAT.index, contigIndexStart);
+        }));
+
+        // Determine start of next contig in index
+        let num_bins = view.getInt32();
+        for (let b=0; b < num_bins; ++b) {
+          view.getUint32(); // bin ID
+          let num_chunks = view.getInt32();
+          view.skip(num_chunks * 16);  // 16 bytes per chunk
+
+        }
+        view.skip(view.getInt32() * 8);  // 8 bits per interval element
+      }
+      
+      return Q.all(indexParsingPromises).then(indices => {
+        // Create hash of contig names with hash of bins
+        let contigs = new Map();
+        for (let r=0; r<head.n_ref; ++r) {
+          let contig = indices[r];
+
+          let bins = new Map();
+          for (var b=0; b<contig.n_bin; ++b) {
+            var bin = contig.bins[b];
+            bins.set(bin.bin, bin.chunks);		
+          }
+     
+          contig.bins = bins;
+
+          contigs.set(names[r], contig);
+        }
+
+        return contigs;
+      });
+
+      /* 
+      console.log(names);
+
+
+
+
+      // Parse entire index file
+      var index = parser.readAll();
+
+
+      
+      
+      // Convert tabix names string to array
+      index.head.names = index.head.names.replace(/\0+$/, '').split('\0');	
+
+      // Create hash of contig names with hash of bins
+      var contigs = new Map();
+      for (var r=0; r<index.head.n_ref; ++r) {
+        var bins = new Map();
+        var contig = index.indexseq[r];
+        for (var b=0; b<contig.n_bin; ++b) {
+          var bin = contig.bins[b];
+          bins.set(bin.bin, bin.chunks);		
+        }
+        contig.bins = bins;
+
+        contigs.set(index.head.names[r], contig);
+      }
+      return contigs;
+      */
+    });
+    this._overlapFunction = overlapFunction.promise;
+    this._commentCharacter = commentCharacter.promise;
+  }
 
 	_chunksForInterval(ctg: string, pos: number, end: number) : Q.Promise<Array<Chunk>> {
 		return this._contigs.then(contigs => {
