@@ -6,7 +6,7 @@
 class VCFVariant {
 	_line: string;
 
-  isSynth: boolean;       
+  isSynth: boolean;
 
 	contig: string;
 	position: number;
@@ -24,7 +24,7 @@ class VCFVariant {
     this.isSynth = isSynth;
 
 		const fields  = this._line.split('\t', samples.length > 0 ? samples.length + 9 : 8);
-		this.contig   = fields[0];
+		this.contig   = (fields[0].slice(0,3)=="chr") ? fields[0] : "chr" + fields[0]; //this is incase the vcf is missing chr
 		this.position = Number(fields[1]);
 		this.ids			= fields[2].split(';');
 		this.ref      = fields[3];
@@ -32,11 +32,11 @@ class VCFVariant {
 
     // Parse genotypes
     this._genotypes = new Map();
-    for (let s = 0; s < samples.length; s++) { 
+    for (let s = 0; s < samples.length; s++) {
       // GT must be the first field for each sample
       let end_of_GT = fields[s+9].indexOf(":");
       let GT = end_of_GT === -1 ? fields[s+9] : fields[s+9].substring(0, end_of_GT);
-      
+
       // Translate alleles, while ignoring the distinction bewteen '/' and '|'
       let stringGT = GT
         .split(/[/|]/)

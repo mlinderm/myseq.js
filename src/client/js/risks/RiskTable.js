@@ -5,7 +5,7 @@ import Q from 'q';
 import VCFSource from '../../../lib/js/io/VCFSource';
 
 import { Table } from 'react-bootstrap';
-import { VictoryLabel, VictoryLine, VictoryChart, VictoryTheme, VictoryScatter , VictoryAxis} from 'victory';
+import { VictoryBar, VictoryContainer, VictoryLegend, VictoryLabel, VictoryLine, VictoryChart, VictoryTheme, VictoryScatter , VictoryAxis} from 'victory';
 // { VictoryLine, VictoryChart, VictoryTheme, VictoryScatter }
 
 class RiskTable extends React.Component {
@@ -14,14 +14,15 @@ class RiskTable extends React.Component {
     super(props);
 
     this.state = {
-      gtAndLR : new Array(this.props.riskVariants.length).fill({
+      postTestRisk : 0,
+
+      data : this.props.riskVariants.map( (variant, index) => {return ({
         GT: undefined,
-        LR: undefined
-      }),
-
-      postTestRiskList : new Array(this.props.riskVariants.length).fill(0),
-
-      data : undefined
+        LR: undefined,
+        cumalitiveLR: undefined,
+        position: index,
+        label: variant.variant.id
+      })}),
 
     };
   }
@@ -39,67 +40,46 @@ class RiskTable extends React.Component {
     }));
 
     allVariants.then(foundVariants => {
-      let localGTAndLR = this.state.gtAndLR;
+      let localdata = this.state.data;
 
       foundVariants.map((variant, index) => {
         if (variant) {
           let gt = variant.genotype(sample);
-          localGTAndLR[index] = { GT: gt, LR: this.props.riskVariants[index].LR[gt] };
+          localdata[index] = { GT: gt, LR: this.props.riskVariants[index].LR[gt], cumalitiveLR: undefined, label: localdata[index].label, position: localdata[index].position};
         }
       });
 
-      this.setState({ gtAndLR : localGTAndLR });
-    })
+      //sort local data
+      localdata.sort((a, b) => {
+        if (a.LR == undefined) {
+          return 1;
+        } else if (b.LR == undefined) {
+          return -1;
+        } else {
+          var distance1 = Math.abs(1 - a.LR);
+          var distance2 = Math.abs(1 - b.LR);
 
-    // .then(() => { // making data object
-    //   let dataTemp = this.props.riskVariants.map((variant, index) => {return({x: undefined, y: undefined, label: variant.variant.id, gt:this.state.gtAndLR[index].GT, lr:this.state.gtAndLR[index].LR})});
-    //   // sorting can be done here
-    //   this.setState({data:dataTemp});
-    //
-    // }).then(() => {
-    //   let localPostTestRisk = this.state.postTestRiskList;
-    //
-    //   this.state.data.map((entry,index) => {
-    //     if (entry.lr != undefined) {
-    //       if (index == 0) { //make into ternary
-    //         localPostTestRisk[index] = entry.lr;
-    //         console.log(localPostTestRisk);
-    //       } else {
-    //         localPostTestRisk[index] = lastIndexWithValue(index-1, localPostTestRisk) * entry.lr;
-    //       }
-    //     }
-    //   })
-    //
-    //   setState({postTestRiskList : localPostTestRisk})
-    // });
+          return distance1 == distance2 ? 0 : (distance1 > distance2 ? 1 : -1);
+        }
+      });
 
-    // TODO: Compute the product of the LRs to determine post-test risk
+      //calculate cumalitiveLR
+      let cumalitiveLRTemp = new Array(localdata.length).fill(undefined);
 
-    function lastIndexWithValue(index, list) {
-      if (list[index] != 0) {
-        return (list[index]);
-      } else {
-        return (lastIndexWithValue(index-1, list));
-      }
-    }
-
-    allVariants.then(foundVariants => {
-      let localPostTestRisk = this.state.postTestRiskList;
-
-      foundVariants.map((variant, index) => {
-        if (variant) {
-          let gt = variant.genotype(sample);
-
-          if (index == 0) { //make into ternary
-            localPostTestRisk[index] = this.props.riskVariants[index].LR[gt];
+      localdata = localdata.map((entry,index) =>{
+        if (entry.LR != undefined) {
+          if (index == 0) {
+            cumalitiveLRTemp[index] = entry.LR;
           } else {
-            localPostTestRisk[index] = lastIndexWithValue(index-1, localPostTestRisk) * this.props.riskVariants[index].LR[gt];
+            cumalitiveLRTemp[index] = cumalitiveLRTemp[index-1] * entry.LR;
+            this.setState({postTestRisk : cumalitiveLRTemp[index-1] * entry.LR});
           }
         }
-      });
-      this.setState({postTestRiskList : localPostTestRisk});
-    });
+        return ({GT: entry.GT, LR: entry.LR, cumalitiveLR: cumalitiveLRTemp[index], label: entry.label, position: entry.position})
+      })
 
+      this.setState({ data : localdata });
+    })
   }
 
   render() {
@@ -123,16 +103,13 @@ class RiskTable extends React.Component {
       }
 
       return result;
-  };
-    // let preData = this.state.postTestRiskList.sort(lr => Math.abs(1-lr));
+    };
 
-    //TODO: need to sort numbers by distance from 1 or pre-test risk value
-    // console.log(this.state.data);
 
-    let labeledData = this.props.riskVariants.map((variant, index) => {return({x: undefined, y: this.state.postTestRiskList[index], label: variant.variant.id, gt:this.state.gtAndLR[index].GT, lr:this.state.gtAndLR[index].LR})});
+    let labeledData = this.state.data.map((variant, index) => {return({x: undefined, y: variant.cumalitiveLR, label: variant.label, gt:variant.GT, lr:variant.LR})});
 
     // points for plot
-    let filteredLabeledData = labeledData.filter(object => object.y != 0);
+    let filteredLabeledData = labeledData.filter(object => object.y != undefined);
     filteredLabeledData.unshift({x:  undefined, y: 1, label: undefined});
     let chartData = filteredLabeledData.map((entry, index) => {return({x: index, y: entry.y*this.props.preRisk, label: entry.label})});
     // console.log(chartData);
@@ -143,11 +120,39 @@ class RiskTable extends React.Component {
     let axisRange = range(rangeLimits[0],rangeLimits[rangeLimits.length-1]+2);
     let averageData = [{x:0, y:this.props.preRisk}, {x:chartData.length-1, y:this.props.preRisk}];
     // console.log(axisRange);
-
+// style={{borderSpacing:0, border:"0 none",  borderTop: "none !important", borderBottom: 0}}
+//condensed={true} style={{borderSpacing:0, borderCollapse: "collapse", border:"0 none",  borderTop: "none !important", borderBottom: 0}}
     return (
       <div>
-        <h4>Pre-Test Risk: {this.props.preRisk}{"%"}</h4>
-        <h4>Post-Test Risk: {this.state.postTestRiskList.slice(-1)*this.props.preRisk}{"%"}</h4>
+        <Table bordered={false}>
+          <tbody>
+            <tr>
+              <td>
+                <h4>Pre-Test Risk: {this.props.preRisk}{"%"}</h4>
+              </td>
+              <td
+                style={{
+                  width: "50%",
+                }}
+              >
+                <div style={{height:"40px", width:this.props.preRisk*5, backgroundColor:"#ff0000"}}></div>
+              </td>
+            </tr>
+            <tr>
+              <td>
+                <h4>Post-Test Risk: {this.state.postTestRisk*this.props.preRisk}{"%"}</h4>
+              </td>
+              <td
+                style={{
+                  width: "50%",
+                }}
+              >
+                <div style={{height:"40px", width:this.state.postTestRisk*this.props.preRisk*5, backgroundColor:"#A9A9A9"}}></div>
+              </td>
+            </tr>
+          </tbody>
+        </Table>
+
         <Table bordered={true}>
           <thead>
             <tr>
@@ -176,6 +181,7 @@ class RiskTable extends React.Component {
           theme={VictoryTheme.material}
           domainPadding={20}
           width={400}
+          height={400}
         >
           <VictoryAxis crossAxis
             tickValues={[...Array(chartData.length).keys()].slice(1)}
@@ -197,7 +203,8 @@ class RiskTable extends React.Component {
           <VictoryLine
             style={{
               data: { stroke: "#A9A9A9" },
-              parent: { border: "1px solid #ccc"}
+              parent: { border: "1px solid #ccc"},
+              labels: { fontSize: 10 }
             }}
             data={chartData}
           />
@@ -208,7 +215,22 @@ class RiskTable extends React.Component {
             data={averageData}
           />
           <VictoryScatter
-          data={chartData}
+            data={chartData}
+            style={{
+              labels: { fontSize: 10 }
+            }}
+          />
+          <VictoryLegend
+            data={[
+              {name: 'Risk Percentage', symbol: { type: 'circle', fill: "#A9A9A9"}},
+              {name: 'Average Population Risk', symbol: { type: 'circle', fill:"#ff0000"}},
+              ]}
+            x={200}
+            y={20}
+            padding={20}
+            style={{
+              labels: { fontSize: 11 }
+            }}
           />
         </VictoryChart>
         </div>
@@ -216,8 +238,8 @@ class RiskTable extends React.Component {
     );
   }
 }
-
-
+// put into attributes of victorychart         containerComponent={<VictoryContainer responsive={false}/>}
+//need to figure out layout still
 
 RiskTable.propTypes = {
   settings: PropTypes.object.isRequired,

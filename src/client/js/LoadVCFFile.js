@@ -180,6 +180,8 @@ class LoadVCFFile extends React.Component {
 								<VCFLink url={"http://localhost:3000/data/traits.vcf.gz"} reference={hg19Reference} name={"traits.vcf"} updateAndSubmitURL={this.updateAndSubmitURL} />
                 <br />
 								<VCFLink url={"http://localhost:3000/data/multi_sample.vcf.gz"} reference={hg19Reference} name={"multi_sample.vcf"} updateAndSubmitURL={this.updateAndSubmitURL} />
+								<br />
+								<VCFLink url={"http://www.cs.middlebury.edu/~mlinderman/myseq/NA12878_GIAB_highconf_CG-IllFB-IllGATKHC-Ion-Solid-10X_CHROM1-X_v3.3_highconf.vcf.gz"} name={"real_data.vcf"} updateAndSubmitURL={this.updateAndSubmitURL} />
 			</Grid>
 		);
 	}

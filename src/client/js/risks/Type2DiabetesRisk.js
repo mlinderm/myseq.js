@@ -16,11 +16,11 @@ const t2d = [
   },
   {
     variant: { chr: '7', pos: 151672604, ref: 'T', alt: 'C', id: 'rs10346949' },
-    LR: { 'T/T' : 0.68, 'T/C' : 1.133, 'C/C': 1.991 } //why does changing chr break everything
+    LR: { 'T/T' : 1.4, 'T/C' : 1.133, 'C/C': 1.991 } //why does changing chr break everything
   },
   {
     variant: { chr: '7', pos: 141672604, ref: 'T', alt: 'C', id: 'rs10346979' },
-    LR: { 'T/T' : 0.68, 'T/C' : .73, 'C/C': 1.991, 'C/T' : 1.083 }
+    LR: { 'T/T' : 10, 'T/C' : .73, 'C/C': 1.991, 'C/T' : 1.083 }
   }
 ];
 

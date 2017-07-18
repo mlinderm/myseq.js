@@ -81,9 +81,9 @@ class VariantRow extends React.Component {
 
     // This doesn't work on Safari
     // console.log(variant.variantInfo);
-    // console.log(variant.contig.slice(3), variant.position, variant.ref, variant.alt);
-    this.props.variant.myVariantInfo(variant.contig.slice(3), variant.position, variant.ref, variant.alt);
-    // console.log(variant.variantInfo);
+    console.log(variant.contig.slice(3), variant.position, variant.ref, variant.alt[0]); //if variant.alt length greater than one show not supported
+    this.props.variant.myVariantInfo(variant.contig.slice(3), variant.position, variant.ref, variant.alt[0]); //if variant.alt length greater than one show not supported
+    console.log(variant.variantInfo);
 
     // Note, creating multiple tbody elements
     return (
@@ -109,7 +109,7 @@ class VariantRow extends React.Component {
               </ul>
             </div>
             <div style={{float:"right"}}>
-              Inbreeding Coefficient: {(variant.variantInfo) ? variant.variantInfo.exac_nontcga.inbreedingcoeff : "Insufficient data"}
+              Inbreeding Coefficient: {(variant.variantInfo) && (variant.variantInfo.exac_nontcga) ? variant.variantInfo.exac_nontcga.inbreedingcoeff : "Insufficient data"}
             </div>
             </td>
           </tr>
