@@ -6,6 +6,7 @@ import VCFSource from '../../../lib/js/io/VCFSource';
 
 import { Table } from 'react-bootstrap';
 import { VictoryBar, VictoryContainer, VictoryLegend, VictoryLabel, VictoryLine, VictoryChart, VictoryTheme, VictoryScatter , VictoryAxis} from 'victory';
+import { Grid, Row, Col } from 'react-bootstrap';
 // { VictoryLine, VictoryChart, VictoryTheme, VictoryScatter }
 
 class RiskTable extends React.Component {
@@ -176,63 +177,76 @@ class RiskTable extends React.Component {
         <br/>
 
         <div>
-        <h3 style={{textAlign:"center"}}>Line Graph of Risk Percentage</h3>
-        <VictoryChart
-          theme={VictoryTheme.material}
-          domainPadding={20}
-          width={400}
-          height={400}
-        >
-          <VictoryAxis crossAxis
-            tickValues={[...Array(chartData.length).keys()].slice(1)}
-            style={{
-              axisLabel: {fontSize: 14, padding: 35},
-              ticks: {stroke: "grey", size: 5},
-              tickLabels: {fontSize: 12, padding: 5}
-            }}
-          />
-          <VictoryAxis dependentAxis crossAxis
-            tickValues={axisRange}
-            label="Percentage"
-            style={{
-              axisLabel: {fontSize: 14, padding: 35},
-              ticks: {stroke: "grey", size: 5},
-              tickLabels: {fontSize: 12, padding: 5}
-            }}
-          />
-          <VictoryLine
-            style={{
-              data: { stroke: "#A9A9A9" },
-              parent: { border: "1px solid #ccc"},
-              labels: { fontSize: 10 }
-            }}
-            data={chartData}
-          />
-          <VictoryLine
-            style={{
-              data: { stroke: "#ff0000" },
-            }}
-            data={averageData}
-          />
-          <VictoryScatter
-            data={chartData}
-            style={{
-              labels: { fontSize: 10 }
-            }}
-          />
-          <VictoryLegend
-            data={[
-              {name: 'Risk Percentage', symbol: { type: 'circle', fill: "#A9A9A9"}},
-              {name: 'Average Population Risk', symbol: { type: 'circle', fill:"#ff0000"}},
-              ]}
-            x={200}
-            y={20}
-            padding={20}
-            style={{
-              labels: { fontSize: 11 }
-            }}
-          />
-        </VictoryChart>
+          <h3 style={{textAlign:"center"}}>Line Graph of Risk Percentage</h3>
+
+              <Row>
+                <Col xs={10} md={10} lg={8}>
+                  <VictoryChart
+                    theme={VictoryTheme.material}
+                    width={400}
+                    height={400}
+                  >
+                    <VictoryAxis crossAxis
+                      tickValues={[...Array(chartData.length).keys()].slice(1)}
+                      style={{
+                        axisLabel: {fontSize: 14, padding: 35},
+                        ticks: {stroke: "grey", size: 5},
+                        tickLabels: {fontSize: 12, padding: 5}
+                      }}
+                    />
+                    <VictoryAxis dependentAxis crossAxis
+                      tickValues={axisRange}
+                      label="Percentage"
+                      style={{
+                        axisLabel: {fontSize: 14, padding: 35},
+                        ticks: {stroke: "grey", size: 5},
+                        tickLabels: {fontSize: 12, padding: 5}
+                      }}
+                    />
+                    <VictoryLine
+                      style={{
+                        data: { stroke: "#A9A9A9" },
+                        parent: { border: "1px solid #ccc"},
+                        labels: { fontSize: 10 }
+                      }}
+                      data={chartData}
+                    />
+                    <VictoryLine
+                      style={{
+                        data: { stroke: "#ff0000" },
+                      }}
+                      data={averageData}
+                    />
+                    <VictoryScatter
+                      data={chartData}
+                      style={{
+                        labels: { fontSize: 10 }
+                      }}
+                    />
+                  </VictoryChart>
+                </Col>
+                <Col xs={1} md={1} lg={1}>
+                  <div
+                    style={{
+                      display: 'flex',
+                      alignItems: 'center',
+                      justifyContent: 'center'
+                    }}
+                  >
+                    <VictoryLegend
+                      data={[
+                        {name: 'Risk Percentage', symbol: { type: 'circle', fill: "#A9A9A9"}},
+                        {name: 'Average Population Risk', symbol: { type: 'circle', fill:"#ff0000"}},
+                        ]}
+                      padding={20}
+                      style={{
+                        labels: { fontSize: 18 },
+                      }}
+                    />
+                  </div>
+                </Col>
+              </Row>
+
         </div>
       </div>
     );

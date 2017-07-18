@@ -81,10 +81,11 @@ class VariantRow extends React.Component {
 
     // This doesn't work on Safari
     // console.log(variant.variantInfo);
-    console.log(variant.contig.slice(3), variant.position, variant.ref, variant.alt[0]); //if variant.alt length greater than one show not supported
+    // console.log(variant.contig.slice(3), variant.position, variant.ref, variant.alt[0]); //if variant.alt length greater than one show not supported
     this.props.variant.myVariantInfo(variant.contig.slice(3), variant.position, variant.ref, variant.alt[0]); //if variant.alt length greater than one show not supported
-    console.log(variant.variantInfo);
+    // console.log(variant.variantInfo);
 
+    console.log(variant.variantInfo);
     // Note, creating multiple tbody elements
     return (
       <tbody>

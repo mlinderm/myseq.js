@@ -67,16 +67,41 @@ class VariantQuery extends React.Component {
   }
 
   handleCoordinateQuery(searchRegion) {
-    this.setState({ region: searchRegion });
+    //advanced query functionality
+    if (searchRegion.slice(0,2) === "rs") {
+      const url = `https://myvariant.info/v1/query?q=${searchRegion}`;
 
-    var coords = searchRegion.split(/[:-]/, 3);
+      fetch(url)
+				.then(response => response.json())
+				.then(data => data.hits
+          .forEach(hit => {
+            let result = hit._id.split(/["g." "A" "C" "T" "G"]/);
+            let query = `${result[0]}${result[2]}-${result[2]}`;
 
-    this.props.source.variants(coords[0], coords[1], coords[2]).then(
-      variants => this.setState({ variants : variants }),
-      err => {
-        this.setState({ validation: 'error', helpMessage: err.message, variants: [] });
-      }
-    );
+            this.handleCoordinateQuery(query);
+          })
+        );
+    } else { //regular query
+      this.setState({ region: searchRegion });
+
+      var coords = searchRegion.split(/[:-]/, 3);
+
+      this.props.source.variants(coords[0], coords[1], coords[2]).then(
+        variants => {
+          this.setState({
+            variants : variants,
+            validation: null,
+            helpMessage: 'Query by genomic coordinates, e.g. chr1:1-100, chr7:141672604-141672604'});
+        },
+        err => {
+          this.setState({
+            validation: 'error',
+            helpMessage: err.message,
+            variants: []
+          });
+        }
+      );
+    }
   }
 
   render() {
