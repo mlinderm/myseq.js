@@ -68,6 +68,7 @@ class VariantQuery extends React.Component {
 
   handleCoordinateQuery(searchRegion) {
     //advanced query functionality
+    console.log(searchRegion);
     if (searchRegion.slice(0,2) === "rs") {
       const url = `https://myvariant.info/v1/query?q=${searchRegion}`;
 
@@ -81,6 +82,44 @@ class VariantQuery extends React.Component {
             this.handleCoordinateQuery(query);
           })
         );
+    } else if (searchRegion[0] === searchRegion[0].toUpperCase() && searchRegion.indexOf(":") === -1) {//no : and uppercase start imagine it is gene name
+        const url = `http://mygene.info/v3/query?q=${searchRegion}`;
+        console.log(url);
+        console.log("test");
+        fetch(url)
+          .then(response => response.json())
+          .then(data => data.hits
+            .forEach(hit => {
+              let entrezID = hit.entrezgene;
+              let url2 = `http://mygene.info/v3/gene/${entrezID}`;
+              console.log(url2);
+
+              let minStart = Infinity;
+              let maxEnd = -1;
+              let chr = undefined;
+
+              fetch(url2)
+                .then(response => response.json())
+                .then(data => data.exons_hg19
+                  .forEach(hit => {
+                    if (hit.cdsstart < minStart) {
+                      minStart = hit.cdsstart;
+                    }
+
+                    if (hit.cdsend > maxEnd) {
+                      maxEnd = hit.cdsend;
+                    }
+
+                    chr = hit.chr;
+
+                    console.log(minStart);
+                    console.log(maxEnd);
+                    console.log(chr);
+                  }))
+            })
+          );
+
+      //look up with my gene info, then look up number, then find range for hg19 start and end
     } else { //regular query
       this.setState({ region: searchRegion });
 
