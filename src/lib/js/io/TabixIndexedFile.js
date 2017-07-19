@@ -276,20 +276,30 @@ function vcfLineInRegion(line: string, ctg: string, pos: number, end: number) {
 
 class TabixIndexedFile {
 	_source: AbstractFileReader;
-	_contigs: Q.Promise<Map<string,Map<number,Object>>>;
-	_overlapFunction: Q.Promise<{(line: string, ctg: string, pos: number, end: number): boolean;}>;
+  _indexBuffer: Q.Promise<ArrayBuffer>;
+
+  _overlapFunction: Q.Promise<{(line: string, ctg: string, pos: number, end: number): boolean;}>;
   _commentCharacter: Q.Promise<string>;
+  _contigs: Q.Promise<Map<string,Object>>;
 
   constructor(dataSource: AbstractFileReader, indexSource: AbstractFileReader) {
+    this._source = dataSource; 
+    
+    var indexBuffer = Q.defer();
     var overlapFunction = Q.defer();
     var commentCharacter = Q.defer();
-    this._source = dataSource; 
-    this._contigs = indexSource.bytes().then(buffer => {
-      var uncompressedIndex = inflateGZip(buffer);
-      console.log("Done decompressing");
-      let view = new jDataView(uncompressedIndex, 0, undefined, true /* little endian */);
-      var parser = new jBinary(view, TABIX_FORMAT);
 
+    this._indexBuffer = indexBuffer.promise;
+    this._overlapFunction = overlapFunction.promise;
+    this._commentCharacter = commentCharacter.promise;
+
+    this._contigs = indexSource.bytes().then(buffer => {
+      const uncompressedIndex = inflateGZip(buffer);
+      indexBuffer.resolve(uncompressedIndex);
+      
+      let view = new jDataView(uncompressedIndex, 0, undefined, true /* little endian */);
+      let parser = new jBinary(view, TABIX_FORMAT);
+      
       // Check for valid magic string
       if (parser.read(TABIX_FORMAT.header.magic, 0 /* Don't advance pointer */) !== "TBI\x01") {
         throw new Error("Invalid index file");
@@ -297,7 +307,7 @@ class TabixIndexedFile {
 
       // Parse header with metadata
       let head = parser.read(TABIX_FORMAT.header)
-
+      
       // Set overlap function based on index header
       let format = head.format;
       switch (format) {
@@ -314,15 +324,12 @@ class TabixIndexedFile {
     
       // Compute contig indices to faciliate independent parsing
       let names = head.names.replace(/\0+$/, '').split('\0');
-      let indexParsingPromises = [];
+      let contig2Index = new Map();
       
       for (let r=0; r < head.n_ref; ++r) {
-        let contigIndexStart = view.tell();
-        indexParsingPromises.push(Q.fcall(() => {
-          return parser.read(TABIX_FORMAT.index, contigIndexStart);
-        }));
-
-        // Determine start of next contig in index
+        let contigBufferStart = view.tell();
+                
+        // Determine end of contig index information
         let num_bins = view.getInt32();
         for (let b=0; b < num_bins; ++b) {
           view.getUint32(); // bin ID
@@ -331,109 +338,79 @@ class TabixIndexedFile {
 
         }
         view.skip(view.getInt32() * 8);  // 8 bits per interval element
+
+        contig2Index.set(names[r], {
+          bytes: [contigBufferStart, view.tell()],
+          index: undefined
+        });
       }
-      
-      return Q.all(indexParsingPromises).then(indices => {
-        // Create hash of contig names with hash of bins
-        let contigs = new Map();
-        for (let r=0; r<head.n_ref; ++r) {
-          let contig = indices[r];
 
-          let bins = new Map();
-          for (var b=0; b<contig.n_bin; ++b) {
-            var bin = contig.bins[b];
-            bins.set(bin.bin, bin.chunks);		
-          }
-     
-          contig.bins = bins;
-
-          contigs.set(names[r], contig);
-        }
-
-        return contigs;
-      });
-
-      /* 
-      console.log(names);
-
-
-
-
-      // Parse entire index file
-      var index = parser.readAll();
-
-
-      
-      
-      // Convert tabix names string to array
-      index.head.names = index.head.names.replace(/\0+$/, '').split('\0');	
-
-      // Create hash of contig names with hash of bins
-      var contigs = new Map();
-      for (var r=0; r<index.head.n_ref; ++r) {
-        var bins = new Map();
-        var contig = index.indexseq[r];
-        for (var b=0; b<contig.n_bin; ++b) {
-          var bin = contig.bins[b];
-          bins.set(bin.bin, bin.chunks);		
-        }
-        contig.bins = bins;
-
-        contigs.set(index.head.names[r], contig);
-      }
-      return contigs;
-      */
+      return contig2Index;
     });
-    this._overlapFunction = overlapFunction.promise;
-    this._commentCharacter = commentCharacter.promise;
+    
   }
 
 	_chunksForInterval(ctg: string, pos: number, end: number) : Q.Promise<Array<Chunk>> {
 		return this._contigs.then(contigs => {
-			var indices = contigs.get(ctg);
-			if (indices === undefined) {
+			let lazyIndex = contigs.get(ctg);
+			if (!lazyIndex) {
 				throw new Errors.ContigNotInIndexError('Unknown contig: ' + ctg);
-			}
-
-			var bins = reg2bins(pos, end + 1);
-			var chunks = _.chain(bins)
-				.map(b => indices.bins.get(b))
-				.filter(b => b !== undefined)
+      }
+      
+      if (!lazyIndex.index) {
+        // Lazily parse index if needed
+        return this._indexBuffer.then(buffer => {
+          let [start, stop] = lazyIndex.bytes
+          
+          let view = new jDataView(buffer, start, stop-start, true /* little endian */);
+          let parser = new jBinary(view, TABIX_FORMAT);
+          
+          lazyIndex.index = parser.read(TABIX_FORMAT.index);
+          return lazyIndex.index;
+        });
+      } else {
+        return Q.when(lazyIndex.index);
+      }
+    }).then(index => {
+			let bins = reg2bins(pos, end + 1);
+			let chunks = _.chain(index.bins)
+        .filter(b => bins.indexOf(b.bin) >= 0)
+        .map(b => b.chunks)
 				.flatten()
 				.value();
 		
 			// Apply linear index and other optimizations
-			var minimumOffset = indices.intervals[Math.max(0, Math.floor(pos / 16384))];
+			let minimumOffset = index.intervals[Math.max(0, Math.floor(pos / 16384))];
 			chunks = optimizeChunks(chunks, minimumOffset);
 
 			return chunks;
 		});
 	}
 
-    _fetchHeader(offset: number) :  Q.Promise<Array<String>> {
-        // Read up to a single compressed block (no more than 64k)
-        return Q.spread([this._source.bytes(offset, 65536), this._commentCharacter], (buffer, comment) => {
-            var uBuffer = inflateGZip(buffer, 0 /* Read single block*/);
-            var uView = new Uint8Array(uBuffer, 0, uBuffer.byteLength)
+  _fetchHeader(offset: number) :  Q.Promise<Array<String>> {
+    // Read up to a single compressed block (no more than 64k)
+    return Q.spread([this._source.bytes(offset, 65536), this._commentCharacter], (buffer, comment) => {
+      var uBuffer = inflateGZip(buffer, 0 /* Read single block*/);
+      var uView = new Uint8Array(uBuffer, 0, uBuffer.byteLength)
 
-            var decoder = new TextDecoder('utf-8');  // Tabix'd files are ASCII
-            var lines = decoder.decode(uView).split('\n');
-            if (_.last(lines).startsWith(comment)) {
-                // Need to fetch additional chunks
-                return this._fetchHeader(offset + 65536).then(nextLines => {
-                    lines = lines.concat(nextLines);   
-                });
-            } else {
-                var last = _.findLastIndex(lines, line => line.startsWith(comment));
-                lines.splice(last + 1);
-                return lines;
-            }          
+      var decoder = new TextDecoder('utf-8');  // Tabix'd files are ASCII
+      var lines = decoder.decode(uView).split('\n');
+      if (_.last(lines).startsWith(comment)) {
+        // Need to fetch additional chunks
+        return this._fetchHeader(offset + 65536).then(nextLines => {
+          lines = lines.concat(nextLines);   
         });
-    }
+      } else {
+        var last = _.findLastIndex(lines, line => line.startsWith(comment));
+        lines.splice(last + 1);
+        return lines;
+      }          
+    });
+  }
 
-    header() : Q.Promise<Array<String>> {
-        return this._fetchHeader(0);       
-    }
+  header() : Q.Promise<Array<String>> {
+    return this._fetchHeader(0);       
+  }
 
 	records(ctg: string, pos: number, end: number) : Q.Promise<Array<String>> {
 		var chunksPromise = this._chunksForInterval(ctg, pos, end)
