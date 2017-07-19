@@ -140,6 +140,20 @@ class VirtualOffset {
 	compareTo(other: VirtualOffset): number {
     return this.coffset - other.coffset || this.uoffset - other.uoffset;
   }
+
+  static fromBlob(u8: Uint8Array, offset?: number): VirtualOffset {
+    offset = offset || 0;
+    let uoffset = u8[offset    ] +
+                  u8[offset + 1] * 256,
+        coffset = u8[offset + 2] +
+                  u8[offset + 3] * 256 +
+                  u8[offset + 4] * 65536 +
+                  u8[offset + 5] * 16777216 +
+                  u8[offset + 6] * 4294967296 +
+                  u8[offset + 7] * 1099511627776;
+    return new VirtualOffset(coffset, uoffset);
+  }
+  
 }
 
 type Chunk = {
@@ -151,27 +165,24 @@ type Chunk = {
 // from https://github.com/jsa-aerial/JS-Binary-VCF-Tabix
 const TABIX_FORMAT = {
 
-    'jBinary.all': 'tabix',
-    'jBinary.littleEndian': true,
+  'jBinary.all': 'tabix',
+  'jBinary.littleEndian': true,
 
-    virtual_offset : jBinary.Template({
-        setParams: function () {
-            this.baseType = {
-                uoffset: 'uint16',
-                coffset_values: ['array', 'uint16', 3]
-            };
-        },
-        read: function() {
-            var raw = this.baseRead();
-            return new VirtualOffset(
-                raw.coffset_values[0] + raw.coffset_values[1] * 65536 + raw.coffset_values[2] * 4294967296,
-                raw.uoffset
-            );	
-        }
-    }),
+  virtual_offset : jBinary.Template({
+    baseType: 'uint64',
+    read: function() {
+      var u64 = this.baseRead();
+      return new VirtualOffset(
+        // compressed offset 
+        u64.hi * 65536 + (u64.lo >>> 16),
+        // uncompressed offset
+        u64.lo & 0xffff
+      );    
+    }
+  }),
 
 	header: {
-		magic:   ['string', 4],
+		magic:   ['const', ['string', 4], "TBI\x01", true],
 		n_ref:   'int32',
 		format:  'int32',
 		col_seq: 'int32',
@@ -188,17 +199,25 @@ const TABIX_FORMAT = {
 		end: 'virtual_offset'
 	},
 
+
+  // Break chunk parsing apart as a performance optimization (adapted from pileup.js)
+  // actual schema is:
+  // chunks:    ['array', 'chunk', function(context){ return context.n_chunk; }]
+  // intervals: ['array', 'virtual_offset', function(context) { return context.n_intv; }]
+  
+  chunks: ['array', 'chunk'],
+
 	bin: {
 		bin:      'uint32',
 		n_chunk:  'int32',
-		chunks:   ['array', 'chunk', function(context){ return context.n_chunk; }]
+		chunks:   ['blob', context => 16 * context.n_chunk]
 	},
 
 	index: {
 		n_bin:     'int32',
 		bins:      ['array', 'bin', function(context) { return context.n_bin; }],
 		n_intv:    'int32',
-		intervals: ['array', 'virtual_offset', function(context) { return context.n_intv; }]
+		intervals: ['blob', context => 8 * context.n_intv]
 	},
 
 	tabix: {
@@ -207,6 +226,26 @@ const TABIX_FORMAT = {
 	}
 
 };
+
+function advanceToEndOfIndex(view: jDataView) {
+  // Determine end of contig index information
+  let num_bins = view.getInt32();
+  for (let b=0; b < num_bins; ++b) {
+    view.getUint32(); // bin ID
+    let num_chunks = view.getInt32();
+    view.skip(num_chunks * 16);  // 16 bytes per chunk
+  }
+  view.skip(view.getInt32() * 8);  // 8 bits per interval element
+}
+
+function readChunks(buffer: Uint8Array): Array<Chunk> {
+  return new jBinary(buffer, TABIX_FORMAT).read('chunks');
+}
+
+function readInterval(buffer: Unit8Array, index: number): VirtualOffset {
+  // Convert index to bytes
+  return VirtualOffset.fromBlob(buffer, index*8);
+}
 
 // Region-to-bins, as defined in http://samtools.github.io/hts-specs/tabix.pdf,
 // adapted from https://github.com/hammerlab/pileup.js
@@ -228,7 +267,7 @@ function optimizeChunks(chunks: Array<Chunk>, minimumOffset: VirtualOffset): Arr
     });
 
     var newChunks = [];
-    for(let chunk of chunks) {
+    for (let chunk of chunks) {
         if (chunk.end.compareTo(minimumOffset) < 0) {
             // Linear index optimization
             continue;
@@ -276,112 +315,126 @@ function vcfLineInRegion(line: string, ctg: string, pos: number, end: number) {
 
 class TabixIndexedFile {
 	_source: AbstractFileReader;
-	_contigs: Q.Promise<Map<string,Map<number,Object>>>;
-	_overlapFunction: Q.Promise<{(line: string, ctg: string, pos: number, end: number): boolean;}>;
-    _commentCharacter: Q.Promise<string>;
+  _indexBuffer: Q.Promise<ArrayBuffer>;
 
-	constructor(dataSource: AbstractFileReader, indexSource: AbstractFileReader) {
-		var overlapFunction = Q.defer();
-        var commentCharacter = Q.defer();
-		this._source = dataSource; 
-		this._contigs = indexSource.bytes().then(buffer => {
-			var uncompressedIndex = inflateGZip(buffer);
-			var parser = new jBinary(
-				new jDataView(uncompressedIndex, 0, undefined, true /* little endian */), 
-				TABIX_FORMAT
-			);
-			
-            // Check for valid magic string
-            if (parser.read(TABIX_FORMAT.header.magic, 0) !== "TBI\x01") {
-                throw new Error("Invalid index file");
-            }
-          
-            // Parse entire index file
-            var index = parser.readAll();
-            
+  _overlapFunction: Q.Promise<{(line: string, ctg: string, pos: number, end: number): boolean;}>;
+  _commentCharacter: Q.Promise<string>;
+  _contigs: Q.Promise<Map<string,Object>>;
 
-			// Set overlap function based on index header
-			var format = index.head.format;
-			switch (format) {
-				case 2:
-					overlapFunction.resolve(vcfLineInRegion);
-					break;
-				default:
-					overlapFunction.resolve(genericLineInRegion);
-					break;
-			}
+  constructor(dataSource: AbstractFileReader, indexSource: AbstractFileReader) {
+    this._source = dataSource; 
+    
+    let indexBuffer = Q.defer();
+    let overlapFunction = Q.defer();
+    let commentCharacter = Q.defer();
 
-            // Extract comment character
-            commentCharacter.resolve(String.fromCharCode(index.head.meta));
+    this._indexBuffer = indexBuffer.promise;
+    this._overlapFunction = overlapFunction.promise;
+    this._commentCharacter = commentCharacter.promise;
 
-			// Convert tabix names string to array
-			index.head.names = index.head.names.replace(/\0+$/, '').split('\0');	
-			
-			// Create hash of contig names with hash of bins
-			var contigs = new Map();
-            for (var r=0; r<index.head.n_ref; ++r) {
-                var bins = new Map();
-                var contig = index.indexseq[r];
-                for (var b=0; b<contig.n_bin; ++b) {
-                    var bin = contig.bins[b];
-                    bins.set(bin.bin, bin.chunks);		
-                }
-                contig.bins = bins;
+    this._contigs = indexSource.bytes().then(buffer => {
+      const uncompressedIndex = inflateGZip(buffer);
+      indexBuffer.resolve(uncompressedIndex);
+      
+      let view = new jDataView(uncompressedIndex, 0, undefined, true /* little endian */);
+      let parser = new jBinary(view, TABIX_FORMAT);
+       
+      // Parse header with metadata
+      let head = parser.read(TABIX_FORMAT.header)
+      
+      // Set overlap function based on index header
+      let format = head.format;
+      switch (format) {
+        case 2:
+          overlapFunction.resolve(vcfLineInRegion);
+          break;
+        default:
+          overlapFunction.resolve(genericLineInRegion);
+          break;
+      }
 
-                contigs.set(index.head.names[r], contig);
-            }
-            return contigs;
+      // Extract comment character
+      commentCharacter.resolve(String.fromCharCode(head.meta));
+    
+      // Compute contig indices to faciliate lazy parsing on indices (adapted from pileup.js)      
+      let names = head.names.replace(/\0+$/, '').split('\0');
+      let contig2Index = new Map();
+      
+      for (let r=0; r < head.n_ref; ++r) {
+        let contigBufferStart = view.tell();
+                
+        advanceToEndOfIndex(view);
+        
+        contig2Index.set(names[r], {
+          bytes: [contigBufferStart, view.tell()],
+          index: undefined
         });
-        this._overlapFunction = overlapFunction.promise;
-        this._commentCharacter = commentCharacter.promise;
-	}
+      }
+
+      return contig2Index;
+    });
+    
+  }
 
 	_chunksForInterval(ctg: string, pos: number, end: number) : Q.Promise<Array<Chunk>> {
 		return this._contigs.then(contigs => {
-			var indices = contigs.get(ctg);
-			if (indices === undefined) {
+			let lazyIndex = contigs.get(ctg);
+			if (!lazyIndex) {
 				throw new Errors.ContigNotInIndexError('Unknown contig: ' + ctg);
-			}
-
-			var bins = reg2bins(pos, end + 1);
-			var chunks = _.chain(bins)
-				.map(b => indices.bins.get(b))
-				.filter(b => b !== undefined)
+      }
+      
+      if (!lazyIndex.index) {
+        // Lazily parse index if needed
+        return this._indexBuffer.then(buffer => {
+          let [start, stop] = lazyIndex.bytes
+          
+          let view = new jDataView(buffer, start, stop-start, true /* little endian */);
+          let parser = new jBinary(view, TABIX_FORMAT);
+          
+          lazyIndex.index = parser.read(TABIX_FORMAT.index);
+          return lazyIndex.index;
+        });
+      } else {
+        return Q.when(lazyIndex.index);
+      }
+    }).then(index => {
+			let bins = reg2bins(pos, end + 1);
+			let chunks = _.chain(index.bins)
+        .filter(b => bins.indexOf(b.bin) >= 0)
+        .map(b => readChunks(b.chunks))
 				.flatten()
 				.value();
 		
 			// Apply linear index and other optimizations
-			var minimumOffset = indices.intervals[Math.max(0, Math.floor(pos / 16384))];
+			let minimumOffset = readInterval(index.intervals, Math.max(0, Math.floor(pos / 16384)));
 			chunks = optimizeChunks(chunks, minimumOffset);
 
 			return chunks;
 		});
 	}
 
-    _fetchHeader(offset: number) :  Q.Promise<Array<String>> {
-        // Read up to a single compressed block (no more than 64k)
-        return Q.spread([this._source.bytes(offset, 65536), this._commentCharacter], (buffer, comment) => {
-            var uBuffer = inflateGZip(buffer, 0 /* Read single block*/);
-            var uView = new Uint8Array(uBuffer, 0, uBuffer.byteLength)
+  _fetchHeader(offset: number) : Q.Promise<Array<String>> {
+    // Read up to a single compressed block (no more than 64k)
+    return Q.spread([this._source.bytes(offset, 65536), this._commentCharacter], (buffer, comment) => {
+      var uBuffer = inflateGZip(buffer, 0 /* Read single block*/);
+      var uView = new Uint8Array(uBuffer, 0, uBuffer.byteLength)
 
-            var decoder = new TextDecoder('utf-8');  // Tabix'd files are ASCII
-            var lines = decoder.decode(uView).split('\n');
-            if (_.last(lines).startsWith(comment)) {
-                // Need to fetch additional chunks
-                return this._fetchHeader(offset + 65536).then(nextLines => {
-                    lines = lines.concat(nextLines);   
-                });
-            } else {
-                var last = _.findLastIndex(lines, line => line.startsWith(comment));
-                lines.splice(last + 1);
-                return lines;
-            }          
-        });
-    }
+      var decoder = new TextDecoder('utf-8');  // Tabix'd files are ASCII
+      var lines = decoder.decode(uView).split('\n');
+      if (_.last(lines).startsWith(comment)) {
+        throw new Error("Headers larger than single bgzip block not yet supported");
+      }
 
-    header() : Q.Promise<Array<String>> {
-        return this._fetchHeader(0);       
-    }
+      var last = _.findLastIndex(lines, line => line.startsWith(comment));
+      lines.splice(last + 1);
+      return lines;
+      
+    });
+  }
+
+  header() : Q.Promise<Array<String>> {
+    return this._fetchHeader(0);       
+  }
 
 	records(ctg: string, pos: number, end: number) : Q.Promise<Array<String>> {
 		var chunksPromise = this._chunksForInterval(ctg, pos, end)
@@ -390,7 +443,7 @@ class TabixIndexedFile {
 		
 			// Read data for each chunk to produce array-of-array of decoded lines 
 			var allLines = Q.all(_.map(chunks, chunk => {
-    		    var cOffset = chunk.beg.coffset;
+    		var cOffset = chunk.beg.coffset;
 				var cBytes  = chunk.end.coffset - chunk.beg.coffset;
 				
 				// At a minimum read at least one compressed block (which must be less than 64k)
@@ -416,4 +469,4 @@ class TabixIndexedFile {
 }
 
 
-module.exports = TabixIndexedFile;
+export default TabixIndexedFile;

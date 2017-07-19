@@ -9,7 +9,7 @@ import PropTypes from 'prop-types';
 import { LocalFileReader, RemoteFileReader } from '../../lib/js/io/FileReaders-browser';
 import TabixIndexedFile from '../../lib/js/io/TabixIndexedFile';
 import VCFSource from '../../lib/js/io/VCFSource';
-import { ReferenceGenome, hg19Reference } from '../../lib/js/features/ReferenceGenome';
+import { ReferenceGenome, hg19Reference, b37Reference } from '../../lib/js/features/ReferenceGenome';
 
 import { Grid, Row, Col, Form, FormGroup, FormControl, ControlLabel, Button, HelpBlock } from 'react-bootstrap';
 
@@ -143,43 +143,45 @@ class LoadVCFFile extends React.Component {
 	render(): any {
 		return (
 			<Grid>
-                <h3>Choose your MySeq input</h3>
-                <p>Get started with MySeq by choosing one of the 3 input methods below</p>
-                <h4>Load variants from a local file on this computer</h4>
-                <Form horizontal>
-                    <FormGroup validationState={this.state.fileValidation}>
-                        <Col componentClass={ControlLabel} sm={2}>
-                            Local VCF file
-                        </Col>
-                        <Col sm={10}>
-                            <FormControl type="file" multiple onChange={this.handleFiles} />
-                            <HelpBlock>{this.state.fileHelpMessage}</HelpBlock>
-                        </Col>
-                    </FormGroup>
-                </Form>
-            	<h4><span>Or</span> load variants from a remote file</h4>
-				<Form horizontal onSubmit={this.handleURLSubmit}>
-                    <FormGroup validationState={this.state.urlValidation}>
-                        <Col componentClass={ControlLabel} sm={2}>
-                            URL of VCF File
-                        </Col>
-                        <Col sm={8}>
-                            <FormControl type="text" placeholder="URL of Tabix-indexed VCF file" value={this.state.url} onChange={this.handleURLChange} />
-                            <HelpBlock>{this.state.urlHelpMessage}</HelpBlock>
-                        </Col>
-                        <Col sm={2}>
-                            <Button type="submit">Load</Button>
-                        </Col>
-                    </FormGroup>
-                </Form>
-                <h4><span>Or</span> choose one of these example datasets</h4>
-                <VCFLink url={"http://localhost:3000/data/single_sample.vcf.gz"} reference={hg19Reference} name={"single_sample.vcf"} updateAndSubmitURL={this.updateAndSubmitURL} />
-								<br />
-								<VCFLink url={"http://localhost:3000/data/complex.vcf.gz"} reference={hg19Reference} name={"complex.vcf"} updateAndSubmitURL={this.updateAndSubmitURL} />
-								<br />
-								<VCFLink url={"http://localhost:3000/data/traits.vcf.gz"} reference={hg19Reference} name={"traits.vcf"} updateAndSubmitURL={this.updateAndSubmitURL} />
-                <br />
-								<VCFLink url={"http://localhost:3000/data/multi_sample.vcf.gz"} reference={hg19Reference} name={"multi_sample.vcf"} updateAndSubmitURL={this.updateAndSubmitURL} />
+        <h3>Choose your MySeq input</h3>
+        <p>Get started with MySeq by choosing one of the 3 input methods below</p>
+        <h4>Load variants from a local file on this computer</h4>
+        <Form horizontal>
+          <FormGroup validationState={this.state.fileValidation}>
+            <Col componentClass={ControlLabel} sm={2}>
+              Local VCF file
+            </Col>
+            <Col sm={10}>
+              <FormControl type="file" multiple onChange={this.handleFiles} />
+              <HelpBlock>{this.state.fileHelpMessage}</HelpBlock>
+            </Col>
+          </FormGroup>
+        </Form>
+        <h4><span>Or</span> load variants from a remote file</h4>
+        <Form horizontal onSubmit={this.handleURLSubmit}>
+          <FormGroup validationState={this.state.urlValidation}>
+            <Col componentClass={ControlLabel} sm={2}>
+              URL of VCF File
+            </Col>
+            <Col sm={8}>
+              <FormControl type="text" placeholder="URL of Tabix-indexed VCF file" value={this.state.url} onChange={this.handleURLChange} />
+              <HelpBlock>{this.state.urlHelpMessage}</HelpBlock>
+            </Col>
+            <Col sm={2}>
+              <Button type="submit">Load</Button>
+            </Col>
+          </FormGroup>
+        </Form>
+        <h4><span>Or</span> choose one of these example datasets</h4>
+        <VCFLink url={"http://localhost:3000/data/single_sample.vcf.gz"} reference={hg19Reference} name={"single_sample.vcf"} updateAndSubmitURL={this.updateAndSubmitURL} />
+        <br />
+        <VCFLink url={"http://localhost:3000/data/complex.vcf.gz"} reference={hg19Reference} name={"complex.vcf"} updateAndSubmitURL={this.updateAndSubmitURL} />
+        <br />
+        <VCFLink url={"http://localhost:3000/data/traits.vcf.gz"} reference={hg19Reference} name={"traits.vcf"} updateAndSubmitURL={this.updateAndSubmitURL} />
+        <br />
+        <VCFLink url={"http://localhost:3000/data/multi_sample.vcf.gz"} reference={hg19Reference} name={"multi_sample.vcf"} updateAndSubmitURL={this.updateAndSubmitURL} />
+        <br />
+        <VCFLink url={"http://www.cs.middlebury.edu/~mlinderman/myseq/NA12878_GIAB_highconf_CG-IllFB-IllGATKHC-Ion-Solid-10X_CHROM1-X_v3.3_highconf.vcf.gz"} reference={b37Reference} name={"NA12878 Genome in a Bottle"} updateAndSubmitURL={this.updateAndSubmitURL} />
 			</Grid>
 		);
 	}
