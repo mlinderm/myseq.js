@@ -9,7 +9,7 @@ import PropTypes from 'prop-types';
 import { LocalFileReader, RemoteFileReader } from '../../lib/js/io/FileReaders-browser';
 import TabixIndexedFile from '../../lib/js/io/TabixIndexedFile';
 import VCFSource from '../../lib/js/io/VCFSource';
-import { ReferenceGenome, hg19Reference } from '../../lib/js/features/ReferenceGenome';
+import { ReferenceGenome, hg19Reference, b37Reference } from '../../lib/js/features/ReferenceGenome';
 
 import { Grid, Row, Col, Form, FormGroup, FormControl, ControlLabel, Button, HelpBlock } from 'react-bootstrap';
 
@@ -181,7 +181,7 @@ class LoadVCFFile extends React.Component {
                 <br />
 								<VCFLink url={"http://localhost:3000/data/multi_sample.vcf.gz"} reference={hg19Reference} name={"multi_sample.vcf"} updateAndSubmitURL={this.updateAndSubmitURL} />
 								<br />
-								<VCFLink url={"http://www.cs.middlebury.edu/~mlinderman/myseq/NA12878_GIAB_highconf_CG-IllFB-IllGATKHC-Ion-Solid-10X_CHROM1-X_v3.3_highconf.vcf.gz"} name={"real_data.vcf"} updateAndSubmitURL={this.updateAndSubmitURL} />
+								<VCFLink url={"http://www.cs.middlebury.edu/~mlinderman/myseq/NA12878_GIAB_highconf_CG-IllFB-IllGATKHC-Ion-Solid-10X_CHROM1-X_v3.3_highconf.vcf.gz"} reference={b37Reference} name={"NA12878 Genome in a Bottle"} updateAndSubmitURL={this.updateAndSubmitURL} />
 			</Grid>
 		);
 	}

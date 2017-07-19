@@ -71,6 +71,18 @@ describe('VCFSource', function() {
         });
     });
 
+    it('should return empty query if contig in reference but not index', function() {
+      var source = getTestSource(); 
+      return source.variants('7', 141672604, 141672604).then(variants => {
+        expect(variants).to.have.lengthOf(0);
+      });  
+    });
+
+    it('should reject if contig not in reference and index', function() {
+      var source = getTestSource(); 
+      expect(source.variants('junk', 141672604, 141672604)).to.be.rejected;
+    });
+
     it ('should return variant with matching alleles', function() {
       var source = getTestSource();
       return source.variant('chr1',100,"A","T").then(variant => {
@@ -101,17 +113,25 @@ describe('VCFSource', function() {
         expect(variant.genotype("NA12878")).to.equal("A/A");
       });
     });
+   
     
-    it('should catch errors if ref/ref requested', function() {
+    it('should return undefined in variant not found even if contig not in index', function() {
       var source = getTestSource();
-      expect(source.variant('7', 141672604, 'T', 'C')).to.be.rejected;
+      
+      return source.variant('7', 141672604, 'T', 'C').then(variant => {
+        expect(variant).to.be.undefined;
+      });
+    });
+
+    it('should return synthetic variant if contig not in index and ref/ref requested', function() {
+      var source = getTestSource();
       
       return source.variant('7', 141672604, 'T', 'C', true).then(variant => {
         expect(variant).to.not.be.undefined;
         expect(variant.isSynth).to.be.true;
         expect(variant.toString()).to.equal("chr7:141672604T>C");
       });
-
     });
+
 
 });
