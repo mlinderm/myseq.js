@@ -12,7 +12,7 @@ const PATH_DATA = path.resolve(__dirname, '../test-data');
 app.use('/data', Express.static(PATH_DATA));
 app.use(Express.static(PATH_DIST));
 
-app.get('/', function(req, res) {
+app.get('/*', function(req, res) {
   res.sendFile(path.resolve(__dirname, '../src/client/index.html'));
 });
 
