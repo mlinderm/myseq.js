@@ -439,19 +439,21 @@ class TabixIndexedFile {
 	records(ctg: string, pos: number, end: number) : Q.Promise<Array<String>> {
 		var chunksPromise = this._chunksForInterval(ctg, pos, end)
 		return Q.spread([chunksPromise, this._overlapFunction], (chunks, overlapFunction) => {
-			var decoder = new TextDecoder('utf-8');  // Tabix'd files are ASCII
+			var decoder = new TextDecoder('utf-8');  // VCF 4.3 allows UTF characters
 		
 			// Read data for each chunk to produce array-of-array of decoded lines 
 			var allLines = Q.all(_.map(chunks, chunk => {
-    		var cOffset = chunk.beg.coffset;
-				var cBytes  = chunk.end.coffset - chunk.beg.coffset;
-				
 				// At a minimum read at least one compressed block (which must be less than 64k)
-				return this._source.bytes(cOffset, (cBytes == 0 ? 65536 : cBytes)).then(buffer => {
-					var uBuffer = (cBytes == 0) ? inflateGZip(buffer, 0 /* Read single block*/) : inflateGZip(buffer);
+    		var cOffset = chunk.beg.coffset;
+				var cBytes  = (chunk.end.coffset + 65536) - chunk.beg.coffset;
 				
+				return this._source.bytes(cOffset, cBytes).then(buffer => {
+					var uBuffer = inflateGZip(buffer);
+			
+          // TODO: Use end.uoffset when spanning multiple compressed blocks
 					var uOffset = chunk.beg.uoffset; // Start decoding at chunk's uncompressed offset
-					var uBytes  = (cBytes == 0 ? chunk.end.uoffset : uBuffer.byteLength) - chunk.beg.uoffset;
+					var uBytes  = 
+            (chunk.end.coffset == chunk.beg.coffset ? chunk.end.uoffset : uBuffer.byteLength) - chunk.beg.uoffset;
 					var uView = new Uint8Array(uBuffer, uOffset, uBytes);
 					
 					return _.chain(decoder.decode(uView).split('\n'))
