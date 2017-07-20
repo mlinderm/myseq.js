@@ -66,26 +66,27 @@ class VariantRow extends React.Component {
   constructor(props) {
     super(props);
     this.state = {
-      rowHidden : true
+      rowHidden : true,
+      myVariantInfo : this.props.variant
     };
 
     this.handleRowClick = this.handleRowClick.bind(this);
   }
 
   handleRowClick() {
+    // const variant = this.props.variant;
+    // this.props.variant.myVariantInfo(variant.contig.slice(3), variant.position, variant.ref, variant.alt[0]); //if variant.alt length greater than one show not supported
     this.setState({ rowHidden : !this.state.rowHidden });
   }
 
   render() {
     const variant = this.props.variant;
+    this.props.variant.myVariantInfo(variant.contig.slice(3), variant.position, variant.ref, variant.alt[0]); //if variant.alt length greater than one show not supported, why does this work as a list
+    //the issue is I need to wait to see if MyVariantInfo changes before changing state so that the component will rerender
 
     // This doesn't work on Safari
-    // console.log(variant.variantInfo);
-    // console.log(variant.contig.slice(3), variant.position, variant.ref, variant.alt[0]); //if variant.alt length greater than one show not supported
-    this.props.variant.myVariantInfo(variant.contig.slice(3), variant.position, variant.ref, variant.alt[0]); //if variant.alt length greater than one show not supported
-    // console.log(variant.variantInfo);
+    // console.log(variant.contig.slice(3), variant.position, variant.ref, variant.alt[0], variant.alt); //if variant.alt length greater than one show not supported
 
-    // console.log(variant.variantInfo);
     // Note, creating multiple tbody elements
     return (
       <tbody>
