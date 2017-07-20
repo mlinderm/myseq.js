@@ -71,7 +71,7 @@ class VariantQuery extends React.Component {
 
     var coords = searchRegion.split(/[:-]/, 3);
 
-    this.props.source.variants(coords[0], coords[1], coords[2]).then(
+    this.props.source.variants(coords[0], parseInt(coords[1]), parseInt(coords[2])).then(
       variants => this.setState({ variants : variants }),
       err => {
         this.setState({ validation: 'error', helpMessage: err.message, variants: [] }); 
