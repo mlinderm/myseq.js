@@ -75,8 +75,14 @@ class Navigation extends React.Component {
             <NavItem eventKey={2}>Settings</NavItem>
           </LinkContainer>
           <NavDropdown eventKey={1} title="Help" id="help-nav-dropdown">
-            <LinkContainer to="/help">
-              <MenuItem eventKey={3.1}>About</MenuItem>
+            <LinkContainer to="/help#how">
+              <MenuItem eventKey={3.1}>How MySeq Works</MenuItem>
+            </LinkContainer>
+            <LinkContainer to="/help#glossary">
+              <MenuItem eventKey={3.2}>Glossary</MenuItem>
+            </LinkContainer>
+            <LinkContainer to="/help#about">
+              <MenuItem eventKey={3.3}>About MySeq</MenuItem>
             </LinkContainer>
           </NavDropdown>
         </Nav>

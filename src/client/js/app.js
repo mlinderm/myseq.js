@@ -15,9 +15,10 @@ import SourceRoute from './SourceRoute';
 import LoadVCFFile from './LoadVCFFile';
 import Navigation from './Navigation';
 import VariantQuery from './VariantQuery';
-import { Traits } from './traits/Traits';
-import { Risks } from './risks/Risks';
+import Traits from './traits/Traits';
+import Risks from './risks/Risks';
 import Settings from './Settings';
+import Help from './help/Help';
 
 const defaultSettings = {
   sample: undefined,
@@ -71,6 +72,7 @@ class App extends React.Component {
               <SourceRoute path='/query' exact component={VariantQuery} source={source} />
               <SourceRoute path='/traits' component={Traits} source={source} settings={settings} />
               <SourceRoute path='/risks' component={Risks} source={source} settings={settings} />
+              <Route path='/help' component={Help} />
             </Switch>
           </Grid>
         </main>
