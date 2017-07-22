@@ -51,6 +51,4 @@ class RisksOverview extends React.Component {
 RisksOverview.propTypes = {
 };
 
-export {
-  Risks  
-};
+export default Risks;

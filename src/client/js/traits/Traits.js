@@ -63,6 +63,4 @@ class TraitsOverview extends React.Component {
 TraitsOverview.propTypes = {
 };
 
-export {
-  Traits  
-};
+export default Traits; 
