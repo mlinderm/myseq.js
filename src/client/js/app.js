@@ -56,7 +56,7 @@ class App extends React.Component {
     
     return (
       <BrowserRouter>
-        <div>
+        <main>
           {/* This should be a nav that is always visible */}
           <Navigation source={source} settings={settings} updateSettings={this.updateSettings} />
           <Grid>
@@ -73,7 +73,7 @@ class App extends React.Component {
               <SourceRoute path='/risks' component={Risks} source={source} settings={settings} />
             </Switch>
           </Grid>
-        </div>
+        </main>
       </BrowserRouter>
     );
 	}
