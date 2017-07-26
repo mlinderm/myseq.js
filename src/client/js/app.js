@@ -5,20 +5,20 @@
 
 import React from 'react';
 import ReactDOM from 'react-dom';
-import { BrowserRouter, Route, Switch, Link } from 'react-router-dom';
+import { BrowserRouter, Route, Switch, Link, Redirect } from 'react-router-dom';
 import { Grid, Navbar, Nav, NavItem, NavDropdown, MenuItem, Form, FormGroup, ControlLabel, FormControl } from 'react-bootstrap';
 import { LinkContainer } from 'react-router-bootstrap';
 
 import VCFSource from '../../lib/js/io/VCFSource';
 
-import TraitsNavBar from "./traits/TraitsNavBar";
-
+import SourceRoute from './SourceRoute';
 import LoadVCFFile from './LoadVCFFile';
 import Navigation from './Navigation';
 import VariantQuery from './VariantQuery';
-import { Traits, TraitsSidebar } from './traits/Traits';
-import { Risks } from './risks/Risks';
+import Traits from './traits/Traits';
+import Risks from './risks/Risks';
 import Settings from './Settings';
+import Help from './help/Help';
 
 const defaultSettings = {
   sample: undefined,
@@ -53,38 +53,31 @@ class App extends React.Component {
 	}
 
 	render(): any {
-    if (this.state.source) {
-      const { source, settings } = this.state;
-      return (
-        <BrowserRouter>
-          <div>
-            {/* This should be a nav that is always visible */}
-            <Navigation source={this.state.source} settings={settings} updateSettings={this.updateSettings} />
-            <Grid>
-              <Switch>
-                <Route path='/' exact render={rp => <VariantQuery {...rp} source={source} />} />
-                <Route path='/settings' exact render={rp =>
-                  <Settings {...rp} settings={settings} updateSettings={this.updateSettings} />
-                } />
-                <Route path='/query' exact render={rp => <VariantQuery {...rp} source={source} />} />
-                <Route path='/traits' render={rp => (
-                  <div>
-                  <Traits {...rp} source={source} settings={settings}/>
-                  </div>
-                  )
-                } />
-                <Route path='/risks' render={rp =>
-                  <Risks {...rp} source={source} settings={settings} />
-                } />
-              </Switch>
-            </Grid>
-          </div>
-        </BrowserRouter>
-      );
-    } else {
-      // Load VCF file if not already provided
-      return(<LoadVCFFile updateSource={ this.updateSource } />);
-    }
+    const { source, settings } = this.state;
+
+    return (
+      <BrowserRouter>
+        <main>
+          {/* This should be a nav that is always visible */}
+          <Navigation source={source} settings={settings} updateSettings={this.updateSettings} />
+          <Grid>
+            <Switch>
+              <SourceRoute path='/' exact component={VariantQuery} source={source} />
+              <Route path='/load' exact render={ rp =>
+                <LoadVCFFile {...rp} updateSource={ this.updateSource } />
+              } />
+              <Route path='/settings' exact render={rp =>
+                <Settings {...rp} settings={settings} updateSettings={this.updateSettings} />
+              } />
+              <SourceRoute path='/query' exact component={VariantQuery} source={source} />
+              <SourceRoute path='/traits' component={Traits} source={source} settings={settings} />
+              <SourceRoute path='/risks' component={Risks} source={source} settings={settings} />
+              <Route path='/help' component={Help} />
+            </Switch>
+          </Grid>
+        </main>
+      </BrowserRouter>
+    );
 	}
 
 }

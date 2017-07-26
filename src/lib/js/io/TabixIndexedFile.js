@@ -68,7 +68,7 @@ type InflatedBlock = {
 
 function inflateOneGZipBlock(buffer, position): PakoResult {
     var inflator = new pako.Inflate();
-    inflator.push(buffer.slice(position));
+    inflator.push(new Uint8Array(buffer, position));
     return {
         err: inflator.err,
         msg: inflator.msg,
@@ -227,15 +227,45 @@ const TABIX_FORMAT = {
 
 };
 
+/**
+ * Advance DataView by one BGZF block (without decompressing), returning
+ * the compressed and uncompressed size for that block
+ */
+function advanceToEndOfBGZFBlock(view: jDataView) {
+  // Based on SAM specification: https://samtools.github.io/hts-specs/SAMv1.pdf
+  view.skip(10);  // Fixed header
+  
+  let bsize = undefined;
+  let xlen = view.getUint16();
+  
+  let extraEnd = view.tell() + xlen;
+  while (view.tell() < extraEnd) {
+    let si1 = view.getUint8(), si2 = view.getUint8();
+    if (si1 === 66 && si2 === 67) {
+      view.getUint16(); // SLEN == 2
+      bsize = view.getUint16();
+      view.seek(extraEnd);
+      break;
+    } else {
+      view.skip(view.getUint16()); // Skip extra field 
+    }
+  }
+  
+  view.skip(bsize - xlen - 19 + 4);  // To start of ISIZE
+  return { csize: bsize, usize: view.getUint32() };
+}
+  
+/**
+ * Advance DataView by one contig's Tabix index
+ */
 function advanceToEndOfIndex(view: jDataView) {
-  // Determine end of contig index information
   let num_bins = view.getInt32();
   for (let b=0; b < num_bins; ++b) {
     view.getUint32(); // bin ID
     let num_chunks = view.getInt32();
     view.skip(num_chunks * 16);  // 16 bytes per chunk
   }
-  view.skip(view.getInt32() * 8);  // 8 bits per interval element
+  view.skip(view.getInt32() * 8);  // 8 bytes per interval element
 }
 
 function readChunks(buffer: Uint8Array): Array<Chunk> {
@@ -262,30 +292,30 @@ function reg2bins(beg, end) {
 }
 
 function optimizeChunks(chunks: Array<Chunk>, minimumOffset: VirtualOffset): Array<Chunk> {
-    chunks.sort((l, r) => {
-        return l.beg.compareTo(r.beg) || l.end.compareTo(r.end);
-    });
+  chunks.sort((l, r) => {
+    return l.beg.compareTo(r.beg) || l.end.compareTo(r.end);
+  });
 
-    var newChunks = [];
-    for (let chunk of chunks) {
-        if (chunk.end.compareTo(minimumOffset) < 0) {
-            // Linear index optimization
-            continue;
-        }
-        if (newChunks.length === 0) {
-            newChunks.push(chunk);
-        } else {
-            // Merge overlapping or adjacent chunks
-            var lastChunk = newChunks[newChunks.length - 1];
-            if (chunk.beg.compareTo(lastChunk.end) > 0) {
-                newChunks.push(chunk);
-            } else {
-                lastChunk.end = chunk.end;
-            }
-        }
+  let newChunks = [];
+  for (let chunk of chunks) {
+    if (chunk.end.compareTo(minimumOffset) < 0) {
+      // Linear index optimization
+      continue;
     }
+    if (newChunks.length === 0) {
+      newChunks.push(chunk);
+    } else {
+      // Merge overlapping or adjacent chunks
+      let lastChunk = newChunks[newChunks.length - 1];
+      if (chunk.beg.compareTo(lastChunk.end) > 0) {
+        newChunks.push(chunk);
+      } else {
+        lastChunk.end = chunk.end;
+      }
+    }
+  }
 
-	return newChunks;
+  return newChunks;
 }
 
 function genericLineInRegion(line: string, ctg: string, pos: number, end: number) {
@@ -293,19 +323,23 @@ function genericLineInRegion(line: string, ctg: string, pos: number, end: number
 }
 
 function vcfLineInRegion(line: string, ctg: string, pos: number, end: number) {
-	var fields = line.split('\t',8);
-	if (fields[0] !== ctg) { // CHROM doesn't match
+	const fields = line.split('\t',8);
+	if (fields.length < 8) {
+    return false;  // Malformed VCF line
+  }
+
+  if (fields[0] !== ctg) { // CHROM doesn't match
 		return false;
 	}
 	
-	var POS = parseInt(fields[1]);
+	const POS = parseInt(fields[1]);
 	if (POS > end) { // POS beyond "end"
 		return false;
 	}
 	
 	// Determine END of VCF record, including END specified in INFO field	
-	var foundEND = /END=(\d+)/.exec(fields[7]);
-	var END = foundEND ? parseInt(foundEND[1]) : POS + fields[3].length - 1;	
+	const foundEND = /END=(\d+)/.exec(fields[7]);
+	const END = foundEND ? parseInt(foundEND[1]) : POS + fields[3].length - 1;	
 	if (END < pos) {
 		return false;
 	}
@@ -427,8 +461,7 @@ class TabixIndexedFile {
 
       var last = _.findLastIndex(lines, line => line.startsWith(comment));
       lines.splice(last + 1);
-      return lines;
-      
+      return lines;     
     });
   }
 
@@ -437,33 +470,37 @@ class TabixIndexedFile {
   }
 
 	records(ctg: string, pos: number, end: number) : Q.Promise<Array<String>> {
-		var chunksPromise = this._chunksForInterval(ctg, pos, end)
+		let chunksPromise = this._chunksForInterval(ctg, pos, end)
 		return Q.spread([chunksPromise, this._overlapFunction], (chunks, overlapFunction) => {
-			var decoder = new TextDecoder('utf-8');  // VCF 4.3 allows UTF characters
+			let decoder = new TextDecoder('utf-8');  // VCF 4.3 allows UTF characters
 		
 			// Read data for each chunk to produce array-of-array of decoded lines 
-			var allLines = Q.all(_.map(chunks, chunk => {
+			return Q.all(chunks.map(chunk => {
 				// At a minimum read at least one compressed block (which must be less than 64k)
-    		var cOffset = chunk.beg.coffset;
-				var cBytes  = (chunk.end.coffset + 65536) - chunk.beg.coffset;
+    		let cOffset = chunk.beg.coffset;
+				let cBytes  = (chunk.end.coffset - chunk.beg.coffset) + 
+          (chunk.end.uoffset > 0) ? 65536 : 0;
 				
 				return this._source.bytes(cOffset, cBytes).then(buffer => {
-					var uBuffer = inflateGZip(buffer);
-			
-          // TODO: Use end.uoffset when spanning multiple compressed blocks
-					var uOffset = chunk.beg.uoffset; // Start decoding at chunk's uncompressed offset
-					var uBytes  = 
-            (chunk.end.coffset == chunk.beg.coffset ? chunk.end.uoffset : uBuffer.byteLength) - chunk.beg.uoffset;
-					var uView = new Uint8Array(uBuffer, uOffset, uBytes);
+					let uOffset = chunk.beg.uoffset; // Start decoding at chunk's uncompressed offset
+          let uBytes  = chunk.end.uoffset - chunk.beg.uoffset;
+
+          // Scan through compressed buffer to tally total uncompressed size
+          let view = new jDataView(buffer, 0, undefined, true /* little endian */);
+          while (view.tell() + cOffset < chunk.end.coffset) {
+            uBytes += advanceToEndOfBGZFBlock(view).usize;
+          }
+          console.assert(view.tell() === chunk.end.coffset);
+          
+          let uBuffer = inflateGZip(buffer, chunk.end.coffset /* Start of last block */);
+					let uView = new Uint8Array(uBuffer, uOffset, uBytes);
 					
-					return _.chain(decoder.decode(uView).split('\n'))
+          return _.chain(decoder.decode(uView).split('\n'))
 						.reject(line => line.length === 0)
 						.filter(line => overlapFunction(line, ctg, pos, end))
 						.value();
 				});
-			}));
-			
-			return allLines.then(lines => {
+			})).then(lines => {
 				return _.flatten(lines);	
 			});
 		});

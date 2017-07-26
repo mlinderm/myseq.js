@@ -25,9 +25,20 @@ class Navigation extends React.Component {
 
   componentDidMount() {
     const { source } = this.props;
-    source.samples().then(samples => {
-      this.setState({ samples: samples });
-    });
+    if (source) { // Allow source to be undefined
+      source.samples().then(samples => {
+        this.setState({ samples: samples });
+      });
+    }
+  }
+
+  componentWillReceiveProps(nextProps) {
+    if (nextProps.source && nextProps.source !== this.props.source) {
+      // Update the samples state
+      nextProps.source.samples().then(samples => {
+        this.setState({ samples: samples });
+      });
+    }
   }
 
   handleSampleChange(event) {
@@ -46,6 +57,9 @@ class Navigation extends React.Component {
           </Navbar.Brand>
         </Navbar.Header>
         <Nav>
+          <LinkContainer to="/load">
+            <NavItem eventKey={0}>New VCF</NavItem>
+          </LinkContainer>
           <NavDropdown eventKey={1} title="Analyses" id="analyses-nav-dropdown">
             <LinkContainer to="/query">
               <MenuItem eventKey={1.1}>Query Variants</MenuItem>
@@ -57,28 +71,41 @@ class Navigation extends React.Component {
               <MenuItem eventKey={1.3}>Common Disease Risk</MenuItem>
             </LinkContainer>
           </NavDropdown>
-           <LinkContainer to="/settings">
+          <LinkContainer to="/settings">
             <NavItem eventKey={2}>Settings</NavItem>
           </LinkContainer>
+          <NavDropdown eventKey={1} title="Help" id="help-nav-dropdown">
+            <LinkContainer to="/help#how">
+              <MenuItem eventKey={3.1}>How MySeq Works</MenuItem>
+            </LinkContainer>
+            <LinkContainer to="/help#glossary">
+              <MenuItem eventKey={3.2}>Glossary</MenuItem>
+            </LinkContainer>
+            <LinkContainer to="/help#about">
+              <MenuItem eventKey={3.3}>About MySeq</MenuItem>
+            </LinkContainer>
+          </NavDropdown>
         </Nav>
-        <Navbar.Form pullRight>
-          <FormGroup>
-            <ControlLabel>Sample</ControlLabel>
-            {' '}
-            <FormControl componentClass="select" placeholder="None available" value={settings.sample || (samples && samples[0])} onChange={this.handleSampleChange}>
-              {samples.map(sample => {
-                return (<option key={sample} value={sample}>{sample}</option>);
-              })}
-            </FormControl>
-          </FormGroup>
-        </Navbar.Form>
+        { samples.length > 0 &&
+          <Navbar.Form pullRight>
+            <FormGroup>
+              <ControlLabel>Sample</ControlLabel>
+              {' '}
+              <FormControl componentClass="select" value={settings.sample || (samples && samples[0])} onChange={this.handleSampleChange}>
+                {samples.map(sample => {
+                  return (<option key={sample} value={sample}>{sample}</option>);
+                })}
+              </FormControl>
+            </FormGroup>
+          </Navbar.Form>
+        }
       </Navbar>
     );
   }
 }
 
 Navigation.propTypes = {
-  source: PropTypes.instanceOf(VCFSource).isRequired,
+  source: PropTypes.instanceOf(VCFSource),
   settings: PropTypes.object.isRequired,
   updateSettings: PropTypes.func.isRequired
 };
