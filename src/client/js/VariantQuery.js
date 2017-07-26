@@ -68,7 +68,7 @@ class VariantQuery extends React.Component {
 
   handleCoordinateQuery(searchRegion) {
     //advanced query functionality
-    console.log(searchRegion);
+    // console.log(searchRegion);
     if (searchRegion.slice(0,2) === "rs") {
       const url = `https://myvariant.info/v1/query?q=${searchRegion}`;
 
@@ -82,17 +82,15 @@ class VariantQuery extends React.Component {
             this.handleCoordinateQuery(query);
           })
         );
-    } else if (searchRegion[0] === searchRegion[0].toUpperCase() && searchRegion.indexOf(":") === -1) {//no : and uppercase start imagine it is gene name
-        const url = `http://mygene.info/v3/query?q=${searchRegion}`;
-        console.log(url);
-        console.log("test");
+    } else if (searchRegion[0] === searchRegion[0].toUpperCase() && searchRegion.indexOf(":") === -1) {//no : and uppercase start imagine it is gene name, make sure human
+        const url = `http://mygene.info/v3/query?q=${searchRegion}&species=human&size=1`;
+
         fetch(url)
           .then(response => response.json())
           .then(data => data.hits
             .forEach(hit => {
               let entrezID = hit.entrezgene;
               let url2 = `http://mygene.info/v3/gene/${entrezID}`;
-              console.log(url2);
 
               let minStart = Infinity;
               let maxEnd = -1;
@@ -102,20 +100,23 @@ class VariantQuery extends React.Component {
                 .then(response => response.json())
                 .then(data => data.exons_hg19
                   .forEach(hit => {
-                    if (hit.cdsstart < minStart) {
-                      minStart = hit.cdsstart;
+                    if (hit.txstart < minStart) {
+                      minStart = hit.txstart;
                     }
 
-                    if (hit.cdsend > maxEnd) {
-                      maxEnd = hit.cdsend;
+                    if (hit.txend > maxEnd) {
+                      maxEnd = hit.txend;
                     }
 
                     chr = hit.chr;
 
-                    console.log(minStart);
-                    console.log(maxEnd);
-                    console.log(chr);
-                  }))
+                    if (data.exons_hg19[data.exons_hg19.length -1] === hit) {
+                      let query = `${chr}:${minStart}-${maxEnd}`;
+
+                      this.handleCoordinateQuery(query);
+                    }
+                  }
+                ))
             })
           );
 

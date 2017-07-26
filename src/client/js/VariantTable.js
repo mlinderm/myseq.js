@@ -34,7 +34,7 @@ function clinvarLinks(variant: VCFVariant) {
   // TODO: Handle multiple references
   return (
     <a
-      href={`http://www.ncbi.nlm.nih.gov/clinvar?term=(${variant.position}%5BBase%20Position%20for%20Assembly%20GRCh37%5D)%20AND%20${variant.contig}%5BChromosome%5D`}
+      href={`http://www.ncbi.nlm.nih.gov/clinvar?term=(${variant.position}%5BBase%20Position%20for%20Assembly%20GRCh37%5D)%20AND%20${variant.contig.slice(3)}%5BChromosome%5D`}
       target="_blank"
     >ClinVar</a>
   );
@@ -46,7 +46,7 @@ function ucscGenomeBrowserLinks(variant: VCFVariant) {
   // TODO: Handle multiple references
   return (
     <a
-      href={`http://genome.ucsc.edu/cgi-bin/hgTracks?db=hg19&highlight=hg19.chr${chr}%3A${pos}-${pos}&position=chr${chr}%3A${pos}-${pos}`}
+      href={`http://genome.ucsc.edu/cgi-bin/hgTracks?db=hg19&highlight=hg19.${chr}%3A${pos}-${pos}&position=${chr}%3A${pos}-${pos}`} //do we want to specify chr
       target="_blank"
     >UCSC Genome Browser</a>
   );
@@ -67,22 +67,35 @@ class VariantRow extends React.Component {
     super(props);
     this.state = {
       rowHidden : true,
-      myVariantInfo : this.props.variant
+      myVariantInfo : undefined
     };
 
     this.handleRowClick = this.handleRowClick.bind(this);
   }
 
+  myVariantInfoSearch(chr, pos, ref, alt) {
+    if (!this.state.myVariantInfo) {
+      const url = `https://myvariant.info/v1/query?q=chr${chr}%3A${pos}`;
+      fetch(url)
+        .then(response => response.json())
+        .then(data => data.hits
+          .map(hit => {
+            if (hit._id === `chr${chr}:g.${pos}${ref}>${alt}`) {
+              this.setState({myVariantInfo : hit});
+            }
+          })
+        );
+    }
+  }
+
   handleRowClick() {
-    // const variant = this.props.variant;
-    // this.props.variant.myVariantInfo(variant.contig.slice(3), variant.position, variant.ref, variant.alt[0]); //if variant.alt length greater than one show not supported
+    const variant = this.props.variant;
+    this.myVariantInfoSearch(variant.contig.slice(3), variant.position, variant.ref, variant.alt[0]); //if variant.alt length greater than one show not supported
     this.setState({ rowHidden : !this.state.rowHidden });
   }
 
   render() {
     const variant = this.props.variant;
-    this.props.variant.myVariantInfo(variant.contig.slice(3), variant.position, variant.ref, variant.alt[0]); //if variant.alt length greater than one show not supported, why does this work as a list
-    //the issue is I need to wait to see if MyVariantInfo changes before changing state so that the component will rerender
 
     // This doesn't work on Safari
     // console.log(variant.contig.slice(3), variant.position, variant.ref, variant.alt[0], variant.alt); //if variant.alt length greater than one show not supported
@@ -111,7 +124,7 @@ class VariantRow extends React.Component {
               </ul>
             </div>
             <div style={{float:"right"}}>
-              Inbreeding Coefficient: {(variant.variantInfo) && (variant.variantInfo.exac_nontcga) ? variant.variantInfo.exac_nontcga.inbreedingcoeff : "Insufficient data"}
+              Inbreeding Coefficient: {(this.state.myVariantInfo) && (this.state.myVariantInfo.exac_nontcga) ? this.state.myVariantInfo.exac_nontcga.inbreedingcoeff : "Insufficient data"}
             </div>
             </td>
           </tr>

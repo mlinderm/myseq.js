@@ -71,11 +71,13 @@ class RiskTable extends React.Component {
         if (entry.LR != undefined) {
           if (index == 0) {
             cumalitiveLRTemp[index] = entry.LR;
+            this.setState({postTestRisk : entry.LR});
           } else {
             cumalitiveLRTemp[index] = cumalitiveLRTemp[index-1] * entry.LR;
             this.setState({postTestRisk : cumalitiveLRTemp[index-1] * entry.LR});
           }
         }
+
         return ({GT: entry.GT, LR: entry.LR, cumalitiveLR: cumalitiveLRTemp[index], label: entry.label, position: entry.position})
       })
 
@@ -121,8 +123,9 @@ class RiskTable extends React.Component {
     let axisRange = range(rangeLimits[0],rangeLimits[rangeLimits.length-1]+2);
     let averageData = [{x:0, y:this.props.preRisk}, {x:chartData.length-1, y:this.props.preRisk}];
     // console.log(axisRange);
-// style={{borderSpacing:0, border:"0 none",  borderTop: "none !important", borderBottom: 0}}
-//condensed={true} style={{borderSpacing:0, borderCollapse: "collapse", border:"0 none",  borderTop: "none !important", borderBottom: 0}}
+
+    // style={{borderSpacing:0, border:"0 none",  borderTop: "none !important", borderBottom: 0}}
+    //condensed={true} style={{borderSpacing:0, borderCollapse: "collapse", border:"0 none",  borderTop: "none !important", borderBottom: 0}}
     return (
       <div>
         <Table bordered={false}>
@@ -136,12 +139,12 @@ class RiskTable extends React.Component {
                   width: "50%",
                 }}
               >
-                <div style={{height:"40px", width:this.props.preRisk*5, backgroundColor:"#ff0000"}}></div>
+                <div style={{height:"40px", width:this.props.preRisk * 5, backgroundColor:"#ff0000"}}></div>
               </td>
             </tr>
             <tr>
               <td>
-                <h4>Post-Test Risk: {this.state.postTestRisk*this.props.preRisk}{"%"}</h4>
+                <h4>Post-Test Risk: {Math.round(this.state.postTestRisk * this.props.preRisk * 100) / 100}{"%"}</h4>
               </td>
               <td
                 style={{
@@ -180,7 +183,7 @@ class RiskTable extends React.Component {
           <h3 style={{textAlign:"center"}}>Line Graph of Risk Percentage</h3>
 
               <Row>
-                <Col xs={10} md={10} lg={8}>
+                <Col xs={10} md={8} lg={7}>
                   <VictoryChart
                     theme={VictoryTheme.material}
                     width={400}
@@ -207,30 +210,30 @@ class RiskTable extends React.Component {
                       style={{
                         data: { stroke: "#A9A9A9" },
                         parent: { border: "1px solid #ccc"},
-                        labels: { fontSize: 10 }
+                        labels: { fontSize: 0 }
                       }}
                       data={chartData}
                     />
                     <VictoryLine
                       style={{
-                        data: { stroke: "#ff0000" },
+                        data: { stroke: "#ff0000" }
                       }}
                       data={averageData}
                     />
                     <VictoryScatter
                       data={chartData}
                       style={{
-                        labels: { fontSize: 10 }
+                        labels: { fontSize: 8 }
                       }}
                     />
                   </VictoryChart>
                 </Col>
                 <Col xs={1} md={1} lg={1}>
                   <div
-                    style={{
-                      display: 'flex',
-                      alignItems: 'center',
-                      justifyContent: 'center'
+                    style = {{
+                      // display:"inline-block",
+                      // verticalAlign:"middle",
+                      marginTop: "230px"
                     }}
                   >
                     <VictoryLegend

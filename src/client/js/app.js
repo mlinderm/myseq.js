@@ -11,10 +11,12 @@ import { LinkContainer } from 'react-router-bootstrap';
 
 import VCFSource from '../../lib/js/io/VCFSource';
 
+import TraitsNavBar from "./traits/TraitsNavBar";
+
 import LoadVCFFile from './LoadVCFFile';
 import Navigation from './Navigation';
 import VariantQuery from './VariantQuery';
-import { Traits } from './traits/Traits';
+import { Traits, TraitsSidebar } from './traits/Traits';
 import { Risks } from './risks/Risks';
 import Settings from './Settings';
 
@@ -27,12 +29,12 @@ class App extends React.Component {
 
 	constructor(settings = {}) {
 		super();
-		
+
     this.state = {
 			source: undefined,
       settings: Object.assign({}, defaultSettings, settings)
 		};
-    
+
     this.updateSource = this.updateSource.bind(this);
     this.updateSettings = this.updateSettings.bind(this);
 	}
@@ -42,7 +44,7 @@ class App extends React.Component {
 	}
 
   updateSettings(settings) {
-    this.setState({ settings: Object.assign({}, this.state.settings, settings) }); 
+    this.setState({ settings: Object.assign({}, this.state.settings, settings) });
   }
 
 
@@ -61,14 +63,17 @@ class App extends React.Component {
             <Grid>
               <Switch>
                 <Route path='/' exact render={rp => <VariantQuery {...rp} source={source} />} />
-                <Route path='/settings' exact render={rp => 
+                <Route path='/settings' exact render={rp =>
                   <Settings {...rp} settings={settings} updateSettings={this.updateSettings} />
                 } />
                 <Route path='/query' exact render={rp => <VariantQuery {...rp} source={source} />} />
-                <Route path='/traits' render={rp => 
-                  <Traits {...rp} source={source} settings={settings} />
+                <Route path='/traits' render={rp => (
+                  <div>
+                  <Traits {...rp} source={source} settings={settings}/>
+                  </div>
+                  )
                 } />
-                <Route path='/risks' render={rp => 
+                <Route path='/risks' render={rp =>
                   <Risks {...rp} source={source} settings={settings} />
                 } />
               </Switch>

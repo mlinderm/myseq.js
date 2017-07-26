@@ -15,11 +15,11 @@ import VCFSource from '../../lib/js/io/VCFSource';
 class Navigation extends React.Component {
   constructor(props) {
     super(props);
-    
+
     this.state = {
       samples : []
     };
-    
+
     this.handleSampleChange = this.handleSampleChange.bind(this);
   }
 
@@ -37,7 +37,7 @@ class Navigation extends React.Component {
   render(): any {
     const { settings } = this.props;
     const { samples } = this.state;
-    
+
     return (
       <Navbar>
         <Navbar.Header>
@@ -67,7 +67,7 @@ class Navigation extends React.Component {
             {' '}
             <FormControl componentClass="select" placeholder="None available" value={settings.sample || (samples && samples[0])} onChange={this.handleSampleChange}>
               {samples.map(sample => {
-                return (<option key={sample} value={sample}>{sample}</option>);                                    
+                return (<option key={sample} value={sample}>{sample}</option>);
               })}
             </FormControl>
           </FormGroup>
