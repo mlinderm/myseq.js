@@ -15,7 +15,7 @@ class CoordinateSearchBox extends React.Component {
   constructor(props) {
     super(props);
 
-    this.state = { 
+    this.state = {
       searchRegion: '',
     };
 
@@ -59,7 +59,7 @@ class VariantQuery extends React.Component {
     this.state = {
       region: undefined,
       validation: null,
-      helpMessage: 'Query by genomic coordinates, e.g. chr1:1-100',
+      helpMessage: 'Query by genomic coordinates, e.g. chr1:1-100, chr7:141672604-141672604',
       variants: []
     };
 
@@ -67,23 +67,88 @@ class VariantQuery extends React.Component {
   }
 
   handleCoordinateQuery(searchRegion) {
-    this.setState({ region: searchRegion });
+    //advanced query functionality
+    // console.log(searchRegion);
+    if (searchRegion.slice(0,2) === "rs") {
+      const url = `https://myvariant.info/v1/query?q=${searchRegion}`;
 
-    var coords = searchRegion.split(/[:-]/, 3);
+      fetch(url)
+				.then(response => response.json())
+				.then(data => data.hits
+          .forEach(hit => {
+            let result = hit._id.split(/["g." "A" "C" "T" "G"]/);
+            let query = `${result[0]}${result[2]}-${result[2]}`;
 
-    this.props.source.variants(coords[0], parseInt(coords[1]), parseInt(coords[2])).then(
-      variants => this.setState({ variants : variants }),
-      err => {
-        this.setState({ validation: 'error', helpMessage: err.message, variants: [] }); 
-      }
-    );
+            this.handleCoordinateQuery(query);
+          })
+        );
+    } else if (searchRegion[0] === searchRegion[0].toUpperCase() && searchRegion.indexOf(":") === -1) {//no : and uppercase start imagine it is gene name, make sure human
+        const url = `http://mygene.info/v3/query?q=${searchRegion}&species=human&size=1`;
+
+        fetch(url)
+          .then(response => response.json())
+          .then(data => data.hits
+            .forEach(hit => {
+              let entrezID = hit.entrezgene;
+              let url2 = `http://mygene.info/v3/gene/${entrezID}`;
+
+              let minStart = Infinity;
+              let maxEnd = -1;
+              let chr = undefined;
+
+              fetch(url2)
+                .then(response => response.json())
+                .then(data => data.exons_hg19
+                  .forEach(hit => {
+                    if (hit.txstart < minStart) {
+                      minStart = hit.txstart;
+                    }
+
+                    if (hit.txend > maxEnd) {
+                      maxEnd = hit.txend;
+                    }
+
+                    chr = hit.chr;
+
+                    if (data.exons_hg19[data.exons_hg19.length -1] === hit) {
+                      let query = `${chr}:${minStart}-${maxEnd}`;
+
+                      this.handleCoordinateQuery(query);
+                    }
+                  }
+                ))
+            })
+          );
+
+      //look up with my gene info, then look up number, then find range for hg19 start and end
+    } else { //regular query
+      this.setState({ region: searchRegion });
+
+      var coords = searchRegion.split(/[:-]/, 3);
+
+      this.props.source.variants(coords[0], parseInt(coords[1]), parseInt(coords[2])).then(
+        variants => {
+          this.setState({
+            variants : variants,
+            validation: null,
+            helpMessage: 'Query by genomic coordinates, e.g. chr1:1-100, chr7:141672604-141672604'});
+        },
+        err => {
+          this.setState({
+            validation: 'error',
+            helpMessage: err.message,
+            variants: []
+          });
+        }
+      );
+    }
   }
 
   render() {
     return (
       <div>
         <CoordinateSearchBox handleCoordinateQuery={this.handleCoordinateQuery} validation={this.state.validation} helpMessage={this.state.helpMessage} />
-        {this.state.region && 
+        {this.state.region &&
           <Row>
             <Col sm={6}>
               <p>Listing {this.state.variants.length} variants in {this.state.region}</p>

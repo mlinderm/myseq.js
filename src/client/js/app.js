@@ -29,12 +29,12 @@ class App extends React.Component {
 
 	constructor(settings = {}) {
 		super();
-		
+
     this.state = {
 			source: undefined,
       settings: Object.assign({}, defaultSettings, settings)
 		};
-    
+
     this.updateSource = this.updateSource.bind(this);
     this.updateSettings = this.updateSettings.bind(this);
 	}
@@ -44,7 +44,7 @@ class App extends React.Component {
 	}
 
   updateSettings(settings) {
-    this.setState({ settings: Object.assign({}, this.state.settings, settings) }); 
+    this.setState({ settings: Object.assign({}, this.state.settings, settings) });
   }
 
 
@@ -54,7 +54,7 @@ class App extends React.Component {
 
 	render(): any {
     const { source, settings } = this.state;
-    
+
     return (
       <BrowserRouter>
         <main>
@@ -63,10 +63,10 @@ class App extends React.Component {
           <Grid>
             <Switch>
               <SourceRoute path='/' exact component={VariantQuery} source={source} />
-              <Route path='/load' exact render={ rp => 
+              <Route path='/load' exact render={ rp =>
                 <LoadVCFFile {...rp} updateSource={ this.updateSource } />
               } />
-              <Route path='/settings' exact render={rp => 
+              <Route path='/settings' exact render={rp =>
                 <Settings {...rp} settings={settings} updateSettings={this.updateSettings} />
               } />
               <SourceRoute path='/query' exact component={VariantQuery} source={source} />

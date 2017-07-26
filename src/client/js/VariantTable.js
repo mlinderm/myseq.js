@@ -13,7 +13,7 @@ import VCFVariant from '../../lib/js/io/VCFVariant';
 
 
 function listOfRSIdLinks(
-  ids: Array<string>, 
+  ids: Array<string>,
   urlFn = ((rsId) => { return `https://www.ncbi.nlm.nih.gov/projects/SNP/snp_ref.cgi?searchType=adhoc_search&type=rs&rs=${rsId.substring(2)}`; }),
   empty = null
 ) {
@@ -26,15 +26,15 @@ function listOfRSIdLinks(
       return id;
     }
   });
-  
-  return (links.length > 0) ? intersperse(links, ", ") : empty;  
+
+  return (links.length > 0) ? intersperse(links, ", ") : empty;
 }
 
 function clinvarLinks(variant: VCFVariant) {
   // TODO: Handle multiple references
   return (
-    <a 
-      href={`http://www.ncbi.nlm.nih.gov/clinvar?term=(${variant.position}%5BBase%20Position%20for%20Assembly%20GRCh37%5D)%20AND%20${variant.contig}%5BChromosome%5D`} 
+    <a
+      href={`http://www.ncbi.nlm.nih.gov/clinvar?term=(${variant.position}%5BBase%20Position%20for%20Assembly%20GRCh37%5D)%20AND%20${variant.contig.slice(3)}%5BChromosome%5D`}
       target="_blank"
     >ClinVar</a>
   );
@@ -45,15 +45,15 @@ function ucscGenomeBrowserLinks(variant: VCFVariant) {
   const pos = variant.position;
   // TODO: Handle multiple references
   return (
-    <a 
-      href={`http://genome.ucsc.edu/cgi-bin/hgTracks?db=hg19&highlight=hg19.chr${chr}%3A${pos}-${pos}&position=chr${chr}%3A${pos}-${pos}`} 
+    <a
+      href={`http://genome.ucsc.edu/cgi-bin/hgTracks?db=hg19&highlight=hg19.${chr}%3A${pos}-${pos}&position=${chr}%3A${pos}-${pos}`} //do we want to specify chr
       target="_blank"
     >UCSC Genome Browser</a>
   );
 }
 
 function exacLinks(variant: VCFVariant) {
-  // TODO: Must be b37 
+  // TODO: Must be b37
   return (
     <a
       href={`http://exac.broadinstitute.org/variant/${variant.contig}-${variant.position}-${variant.ref}-${variant.alt}`}
@@ -66,22 +66,39 @@ class VariantRow extends React.Component {
   constructor(props) {
     super(props);
     this.state = {
-      rowHidden : true
+      rowHidden : true,
+      myVariantInfo : undefined
     };
-    
+
     this.handleRowClick = this.handleRowClick.bind(this);
   }
 
+  myVariantInfoSearch(chr, pos, ref, alt) {
+    if (!this.state.myVariantInfo) {
+      const url = `https://myvariant.info/v1/query?q=chr${chr}%3A${pos}`;
+      fetch(url)
+        .then(response => response.json())
+        .then(data => data.hits
+          .map(hit => {
+            if (hit._id === `chr${chr}:g.${pos}${ref}>${alt}`) {
+              this.setState({myVariantInfo : hit});
+            }
+          })
+        );
+    }
+  }
+
   handleRowClick() {
+    const variant = this.props.variant;
+    this.myVariantInfoSearch(variant.contig.slice(3), variant.position, variant.ref, variant.alt[0]); //if variant.alt length greater than one show not supported
     this.setState({ rowHidden : !this.state.rowHidden });
   }
 
   render() {
-
     const variant = this.props.variant;
-    
+
     // This doesn't work on Safari
-    //this.props.variant.myVariantInfo(chromosome, position, reference, alternate);
+    // console.log(variant.contig.slice(3), variant.position, variant.ref, variant.alt[0], variant.alt); //if variant.alt length greater than one show not supported
 
     // Note, creating multiple tbody elements
     return (
@@ -91,7 +108,7 @@ class VariantRow extends React.Component {
           <td>{listOfRSIdLinks(variant.ids)}</td>
           <td>{variant.genotype()}</td>
         </tr>
-        {!this.state.rowHidden && 
+        {!this.state.rowHidden &&
           <tr>
             <td colSpan="3">
             <div style={{float:"left"}}>
@@ -100,14 +117,14 @@ class VariantRow extends React.Component {
                   <li>{ucscGenomeBrowserLinks(variant)}</li>
                   <li>{exacLinks(variant)}</li>
                   <li>OMIM: {listOfRSIdLinks(variant.ids, (id) => { return `https://www.omim.org/search/?search=rs${id.slice(2)}`; }, "Insufficient data")}</li>
-                  <li>SNPedia: {listOfRSIdLinks(variant.ids, (id) => { return `https://www.snpedia.com/index.php/Rs${id.slice(2)}(${variant.ref};${variant.alt.shift()})`; }, "Insufficient data")}</li>
+                  <li>SNPedia: {listOfRSIdLinks(variant.ids, (id) => { return `https://www.snpedia.com/index.php/Rs${id.slice(2)}(${variant.ref};${variant.alt[0]})`; }, "Insufficient data")}</li>
                   <li>dbSNP: {listOfRSIdLinks(variant.ids)}</li>
                   <li><a href="https://www.google.com/" target="_blank">Google TODO</a></li>
                   <li><a href="http://myvariant.info/v1/api/#MyVariant.info-variant-query-service-GET-Variant-query-service" target="_blank">MyVariant.Info TODO</a></li>
               </ul>
             </div>
             <div style={{float:"right"}}>
-              Inbreeding Coefficient: {(variant.info) ? variant.info.exac_nontcga.inbreedingcoeff : "Insufficient data"}
+              Inbreeding Coefficient: {(this.state.myVariantInfo) && (this.state.myVariantInfo.exac_nontcga) ? this.state.myVariantInfo.exac_nontcga.inbreedingcoeff : "Insufficient data"}
             </div>
             </td>
           </tr>

@@ -122,14 +122,14 @@ class LoadVCFFile extends React.Component {
     this._createAndUpdateSourceFromURL(url, url + ".tbi", reference);
   }
 
-	render(): any {  
+	render(): any {
     if (this.state.redirectToReferrer) {
       const { from } = this.props.location.state || { from: { pathname: '/' } }
       return (
         <Redirect to={from}/>
       )
     }
-    
+
     return (
       <Modal show={true} bsSize="large">
         <Modal.Header>
