@@ -115,17 +115,20 @@ class RiskTable extends React.Component {
     let filteredLabeledData = labeledData.filter(object => object.y != undefined);
     filteredLabeledData.unshift({x:  undefined, y: 1, label: undefined});
     let chartData = filteredLabeledData.map((entry, index) => {return({x: index, y: entry.y*this.props.preRisk, label: entry.label})});
-    // console.log(chartData);
 
     // math for plot axes
     let axis = chartData.map(value => Math.floor(value.y));
     let rangeLimits = axis.sort((a,b) => a-b); //sort from smallest to largest
-    let axisRange = range(rangeLimits[0],rangeLimits[rangeLimits.length-1]+2);
-    let averageData = [{x:0, y:this.props.preRisk}, {x:chartData.length-1, y:this.props.preRisk}];
-    // console.log(axisRange);
 
-    // style={{borderSpacing:0, border:"0 none",  borderTop: "none !important", borderBottom: 0}}
-    //condensed={true} style={{borderSpacing:0, borderCollapse: "collapse", border:"0 none",  borderTop: "none !important", borderBottom: 0}}
+    let axisRange = range(rangeLimits[0],rangeLimits[rangeLimits.length-1]+2);
+    if (axisRange.length > 15) {
+      axisRange = axisRange.filter(value => value%2===0);
+    } else if (axisRange.length > 30) {
+      axisRange = axisRange.filter(value => value%4===0);
+    }
+
+    let averageData = [{x:0, y:this.props.preRisk}, {x:chartData.length-1, y:this.props.preRisk}];
+
     return (
       <div>
         <Table bordered={false}>

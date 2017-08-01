@@ -119,8 +119,8 @@ class VariantRow extends React.Component {
                   <li>OMIM: {listOfRSIdLinks(variant.ids, (id) => { return `https://www.omim.org/search/?search=rs${id.slice(2)}`; }, "Insufficient data")}</li>
                   <li>SNPedia: {listOfRSIdLinks(variant.ids, (id) => { return `https://www.snpedia.com/index.php/Rs${id.slice(2)}(${variant.ref};${variant.alt[0]})`; }, "Insufficient data")}</li>
                   <li>dbSNP: {listOfRSIdLinks(variant.ids)}</li>
-                  <li><a href="https://www.google.com/" target="_blank">Google TODO</a></li>
-                  <li><a href="http://myvariant.info/v1/api/#MyVariant.info-variant-query-service-GET-Variant-query-service" target="_blank">MyVariant.Info TODO</a></li>
+                  <li><a href="https://www.google.com/" target="_blank">Google</a></li>
+                  <li><a href="http://myvariant.info/v1/api/#MyVariant.info-variant-query-service-GET-Variant-query-service" target="_blank">MyVariant.Info</a></li>
               </ul>
             </div>
             <div style={{float:"right"}}>
