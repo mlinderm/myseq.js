@@ -487,12 +487,12 @@ class TabixIndexedFile {
 
           // Scan through compressed buffer to tally total uncompressed size
           let view = new jDataView(buffer, 0, undefined, true /* little endian */);
-          while (view.tell() + cOffset < chunk.end.coffset) {
+          while ((view.tell() + cOffset) < chunk.end.coffset) {
             uBytes += advanceToEndOfBGZFBlock(view).usize;
           }
-          console.assert(view.tell() === chunk.end.coffset);
+          console.assert((view.tell() + cOffset) === chunk.end.coffset);
           
-          let uBuffer = inflateGZip(buffer, chunk.end.coffset /* Start of last block */);
+          let uBuffer = inflateGZip(buffer, view.tell() /* Start of last block */);
 					let uView = new Uint8Array(uBuffer, uOffset, uBytes);
 					
           return _.chain(decoder.decode(uView).split('\n'))
