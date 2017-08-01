@@ -97,13 +97,21 @@ describe('VCFSource', function() {
       })
     });
     
-    it('should infer reference genome from VCF header', function() {
-        var source = getTestSourceFull('./test-data/single_sample_with_reference.vcf.gz', undefined);
-        return source._reference.then(ref => {
-            expect(ref).to.equal(Ref.b37Reference);
-        });
+    it('should infer reference genome from reference key in VCF header', function() {
+      var source = getTestSourceFull('./test-data/single_sample_with_reference.vcf.gz', undefined);
+      return source._reference.then(ref => {
+        expect(ref).to.equal(Ref.b37Reference);
+      });
     });
-    
+
+    it('should infer reference genome from contigs in VCF header', function() {
+      var source = getTestSourceFull('./test-data/single_sample_with_contigs.vcf.gz', undefined);
+      return source._reference.then(ref => {
+        expect(ref).to.equal(Ref.b37Reference);
+      });
+    });
+
+
     it('should generate REF/REF genotype if requested and variant not found', function() {
       var source = getTestSource();
       return source.variant('chr1',100,"A","G", true).then(variant => {
@@ -117,7 +125,6 @@ describe('VCFSource', function() {
     
     it('should return undefined in variant not found even if contig not in index', function() {
       var source = getTestSource();
-      
       return source.variant('7', 141672604, 'T', 'C').then(variant => {
         expect(variant).to.be.undefined;
       });
@@ -125,7 +132,6 @@ describe('VCFSource', function() {
 
     it('should return synthetic variant if contig not in index and ref/ref requested', function() {
       var source = getTestSource();
-      
       return source.variant('7', 141672604, 'T', 'C', true).then(variant => {
         expect(variant).to.not.be.undefined;
         expect(variant.isSynth).to.be.true;

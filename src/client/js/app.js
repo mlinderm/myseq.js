@@ -3,13 +3,17 @@
  */
 'use strict';
 
+import Q from 'q';
+
 import React from 'react';
+import update from 'immutability-helper';
 import ReactDOM from 'react-dom';
 import { BrowserRouter, Route, Switch, Link, Redirect } from 'react-router-dom';
 import { Grid, Navbar, Nav, NavItem, NavDropdown, MenuItem, Form, FormGroup, ControlLabel, FormControl } from 'react-bootstrap';
 import { LinkContainer } from 'react-router-bootstrap';
 
 import VCFSource from '../../lib/js/io/VCFSource';
+import * as Ref from '../../lib/js/features/ReferenceGenome';
 
 import SourceRoute from './SourceRoute';
 import LoadVCFFile from './LoadVCFFile';
@@ -37,19 +41,26 @@ class App extends React.Component {
 
     this.updateSource = this.updateSource.bind(this);
     this.updateSettings = this.updateSettings.bind(this);
+    this.updateReference = this.updateReference.bind(this);
 	}
 
   updateSource(source: VCFSource) {
 		this.setState({ source: source });
 	}
 
-  updateSettings(settings) {
+  updateSettings(settings: Object) {
     this.setState({ settings: Object.assign({}, this.state.settings, settings) });
   }
 
+  updateReference(shortName: string) { 
+    const newSource = update(this.state.source, {
+      _reference: {$set: Q.when(Ref.referenceFromShortName(shortName))}
+    });
+    this.setState({ source: newSource });
+  }
 
 	componentDidMount() {
-		// TODO: Initialize source if included in the URL
+    // TODO: Initialize source if included in the URL
 	}
 
 	render(): any {
@@ -66,9 +77,12 @@ class App extends React.Component {
               <Route path='/load' exact render={ rp =>
                 <LoadVCFFile {...rp} updateSource={ this.updateSource } />
               } />
-              <Route path='/settings' exact render={rp =>
-                <Settings {...rp} settings={settings} updateSettings={this.updateSettings} />
-              } />
+              <SourceRoute path='/settings' exact component={Settings} 
+                source={source} 
+                settings={settings} 
+                updateSettings={this.updateSettings}
+                updateReference={this.updateReference}
+              />
               <SourceRoute path='/query' exact component={VariantQuery} source={source} />
               <SourceRoute path='/traits' component={Traits} source={source} settings={settings} />
               <SourceRoute path='/risks' component={Risks} source={source} settings={settings} />

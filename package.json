@@ -42,6 +42,7 @@
   },
   "dependencies": {
     "classnames": "^2.2.5",
+    "immutability-helper": "^2.3.0",
     "jbinary": "^2.1.3",
     "jdataview": "^2.5.0",
     "keycode": "^2.1.9",

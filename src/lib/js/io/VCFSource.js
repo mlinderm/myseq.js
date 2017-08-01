@@ -33,16 +33,28 @@ class VCFSource {
       }
 
       // 1. Look for a reference line
-      var refIdx = _.findIndex(headerLines, (line) => { return line.startsWith("##reference="); });
+      let refIdx = _.findIndex(headerLines, (line) => line.startsWith("##reference="));
       if (refIdx != -1) {
         // Do we know this reference file?
-        var referenceFrom = Ref.referenceFromFile(headerLines[refIdx].substring(12)); // index after '='
+        let referenceFrom = Ref.referenceFromFile(headerLines[refIdx].substring(12)); // index after '='
         if (referenceFrom !== undefined) {
           referenceResolver.resolve(referenceFrom);
         }
       }
 
-      // TODO 2. Parse contig lines to infer reference
+      // 2. Parse contig lines to infer reference
+      let contigs = _.chain(headerLines)
+        .filter(line => line.startsWith("##contig="))
+        .map(line => line.match(/ID=([^,>]+)/))
+        .reject(match => match === null)
+        .map(match => match[1])
+        .value();
+      if (contigs.length > 0) {
+        let referenceFrom = Ref.referenceFromContigs(contigs);
+        if (referenceFrom !== undefined) {
+          referenceResolver.resolve(referenceFrom);
+        }
+      }
 
       // -OR- set hg19 as a default (will be a no-op if referenceResolver is already resolved)
       referenceResolver.resolve(Ref.hg19Reference);
@@ -56,6 +68,10 @@ class VCFSource {
       return columns.slice(9);
     });
 	}
+
+  reference() : Q.Promise<Ref.ReferenceGenome> {
+    return this._reference;
+  }
 
   samples() : Q.Promise<Array<string>> {
     return this._samples;

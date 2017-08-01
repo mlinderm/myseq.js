@@ -4,36 +4,42 @@
 
 'use strict';
 
+import _ from 'underscore';
+
 class ReferenceGenome {
-    shortName : string;
-    leadingChr : boolean;
-    _seqDict : Object;
-    _liftoverTo : Object;
+  shortName : string;
+  leadingChr : boolean;
+  _seqDict : Object;
+  _liftoverTo : Object;
 
-    constructor(shortName: string, leadingChr: boolean, seqDict: Object, liftoverTo) {
-        // Not currently supported in Babel: https://github.com/babel/babel/issues/1088
-        // if (new.target === ReferenceGenome) {
-        //    throw new Error("Cannot construct ReferenceGenome instances directly");
-        // }
+  constructor(shortName: string, leadingChr: boolean, seqDict: Object, liftoverTo) {
+    // Not currently supported in Babel: https://github.com/babel/babel/issues/1088
+    // if (new.target === ReferenceGenome) {
+    //    throw new Error("Cannot construct ReferenceGenome instances directly");
+    // }
 
-        this.shortName = shortName;
-        this.leadingChr = leadingChr;
-        this._seqDict = seqDict;
-        this._liftoverTo = liftoverTo;
+    this.shortName = shortName;
+    this.leadingChr = leadingChr;
+    this._seqDict = seqDict;
+    this._liftoverTo = liftoverTo;
+  }
+
+  normalizeContig(contig: string) {
+    if (this._seqDict.hasOwnProperty(contig))
+      return contig;
+    else {
+      // Translate contigs from other references to this reference
+      let lifted = this._liftoverTo[contig];
+      if (lifted === undefined) {
+        throw new RangeError('Unknown contig: ' + contig);
+      }
+      return lifted;
     }
-
-    normalizeContig(contig: string) {
-        if (this._seqDict.hasOwnProperty(contig))
-            return contig;
-        else {
-            // Translate contigs from other references to this reference
-            var lifted = this._liftoverTo[contig];
-            if (lifted === undefined) {
-				throw new RangeError('Unknown contig: ' + contig);
-			}
-            return lifted;
-        }
-    }
+  }
+  
+  contigs(): Array<string> {
+    return Object.keys(this._seqDict);
+  }
 }
 
 const hg19SeqDict = {
@@ -162,9 +168,9 @@ const liftToHg19 = {
 
 
 class Hg19Reference extends ReferenceGenome {
-    constructor() {
-        super("hg19", true, hg19SeqDict, liftToHg19);
-    }
+  constructor() {
+    super("hg19", true, hg19SeqDict, liftToHg19);
+  }
 }
 
 const b37SeqDict = {
@@ -284,9 +290,9 @@ const liftToB37 = {
 
 
 class B37Reference extends ReferenceGenome {
-    constructor() {
-        super("b37", false, b37SeqDict, liftToB37);
-    }
+  constructor() {
+    super("b37", false, b37SeqDict, liftToB37);
+  }
 }
 
 
@@ -294,15 +300,33 @@ const hg19Reference = new Hg19Reference();
 const b37Reference = new B37Reference();
 
 const fileNamesToRef = {
-    "human_g1k_v37.fasta": b37Reference,
-    "ucsc.hg19.fasta": hg19Reference
+  "human_g1k_v37.fasta": b37Reference,
+  "ucsc.hg19.fasta": hg19Reference
+};
+
+const references = [
+  hg19Reference,
+  b37Reference
+];
+
+const shortNameToRef = {
+  "hg19": hg19Reference,
+  "b37": b37Reference
 };
 
 module.exports = {
-    ReferenceGenome,
-    hg19Reference,
-    b37Reference,
-    referenceFromFile: function(filename: string) {
-        return fileNamesToRef[filename.split(/[\\/]/).pop()];
-    }
+  ReferenceGenome,
+  hg19Reference,
+  b37Reference,
+  referenceFromFile: function(filename: string) {
+    return fileNamesToRef[filename.split(/[\\/]/).pop()];
+  },
+  referenceFromContigs: function(contigs: Array<string>): ReferenceGenome {
+    let possibleRefs = references.filter(ref => _.difference(contigs, ref.contigs()).length === 0); 
+    // Only return reference if we generate a unique match
+    return (possibleRefs.length === 1) ? possibleRefs[0] : undefined;
+  },
+  referenceFromShortName: function(shortName: string): ReferenceGenome {
+    return shortNameToRef[shortName];
+  }
 };
