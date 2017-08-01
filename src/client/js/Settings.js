@@ -19,7 +19,7 @@ class Settings extends React.Component {
     };
     this.handleReferenceChange = this.handleReferenceChange.bind(this);
   }
-  
+
   componentDidMount() {
     this.props.source.reference().then(ref => {
       this.setState({ reference: ref.shortName });
@@ -39,7 +39,7 @@ class Settings extends React.Component {
   }
 
   render() {
-    const { settings, updateSettings } = this.props; 
+    const { settings, updateSettings } = this.props;
     return(
       <Form>
         <FormGroup>
@@ -49,15 +49,15 @@ class Settings extends React.Component {
             Assume missing variants have reference genotype
           </Checkbox>
           <HelpBlock>
-          
+
             Select when analyzing whole genome sequencing (WGS) data. Most WGS
             analysis pipelines only report sites different from the reference
             genome. When this option is selected, MySeq will assume that
             unreported sites have homozygous reference genotypes.
-            
+
           </HelpBlock>
         </FormGroup>
-        
+
         <FormGroup validationState="warning">
           <ControlLabel>Reference Genome</ControlLabel>
           <Row>
@@ -69,12 +69,12 @@ class Settings extends React.Component {
             </Col>
           </Row>
           <HelpBlock>
-          
+
             Change the reference genome. Generally you should not need to
             manually set the reference genome. MySeq will infer the reference
             for you. However, there may be corner cases that require you to
-              override MySeq's shoice.
-            
+            override MySeq's shoice.
+
           </HelpBlock>
         </FormGroup>
       </Form>
@@ -85,7 +85,7 @@ class Settings extends React.Component {
 Settings.propTypes = {
   source: PropTypes.instanceOf(VCFSource),
   settings: PropTypes.object,
-  updateSettings: PropTypes.func  
+  updateSettings: PropTypes.func
 };
 
 

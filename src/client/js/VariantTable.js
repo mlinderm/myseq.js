@@ -73,9 +73,13 @@ class VariantRow extends React.Component {
     this.handleRowClick = this.handleRowClick.bind(this);
   }
 
-  myVariantInfoSearch(chr, pos, ref, alt) {
-    if (!this.state.myVariantInfo) {
-      const url = `https://myvariant.info/v1/query?q=chr${chr}%3A${pos}`;
+  myVariantInfoSearch(chr, pos, ref, alt, rsID) {
+    if (this.state.myVariantInfo === undefined) {
+      //should we use annotation services or a filtered search
+      const url = `https://myvariant.info/v1/query?q=${rsID}`;
+      // const url = `https://myvariant.info/v1/query?q=chr${chr}%3A${pos}`;
+      // const url = `https://myvariant.info/v1/variant/chr${chr}%3Ag.${pos}${ref}%3E${alt}`
+
       fetch(url)
         .then(response => response.json())
         .then(data => data.hits
@@ -90,7 +94,7 @@ class VariantRow extends React.Component {
 
   handleRowClick() {
     const variant = this.props.variant;
-    this.myVariantInfoSearch(variant.contig.slice(3), variant.position, variant.ref, variant.alt[0]); //if variant.alt length greater than one show not supported
+    this.myVariantInfoSearch(variant.contig.slice(3), variant.position, variant.ref, variant.alt[0], variant.ids[0]); //if variant.alt or variant.ids length greater than one show not supported
     this.setState({ rowHidden : !this.state.rowHidden });
   }
 
