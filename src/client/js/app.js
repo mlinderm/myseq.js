@@ -52,7 +52,7 @@ class App extends React.Component {
     this.setState({ settings: Object.assign({}, this.state.settings, settings) });
   }
 
-  updateReference(shortName: string) { 
+  updateReference(shortName: string) {
     const newSource = update(this.state.source, {
       _reference: {$set: Q.when(Ref.referenceFromShortName(shortName))}
     });
@@ -65,7 +65,7 @@ class App extends React.Component {
 
 	render(): any {
     const { source, settings } = this.state;
-
+    // console.log(this.state.source);
     return (
       <BrowserRouter>
         <main>
@@ -77,9 +77,11 @@ class App extends React.Component {
               <Route path='/load' exact render={ rp =>
                 <LoadVCFFile {...rp} updateSource={ this.updateSource } />
               } />
-              <SourceRoute path='/settings' exact component={Settings} 
-                source={source} 
-                settings={settings} 
+
+
+              <SourceRoute path='/settings' exact component={Settings}
+                source={source}
+                settings={settings}
                 updateSettings={this.updateSettings}
                 updateReference={this.updateReference}
               />
@@ -87,6 +89,7 @@ class App extends React.Component {
               <SourceRoute path='/traits' component={Traits} source={source} settings={settings} />
               <SourceRoute path='/risks' component={Risks} source={source} settings={settings} />
               <Route path='/help' component={Help} />
+              <Route render= {() => <h1>404: Path Not Found</h1>}/>
             </Switch>
           </Grid>
         </main>
@@ -96,6 +99,9 @@ class App extends React.Component {
 
 }
 
+// <Route path='/load/source/:source' exact render={ rp =>
+//   <LoadVCFFile {...rp} updateSource={ this.updateSource } />
+// } />
 
 function create(elOrId: string|Element) {
 	var el = typeof(elOrId) == 'string' ? document.getElementById(elOrId) : elOrId;

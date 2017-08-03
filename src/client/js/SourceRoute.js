@@ -13,17 +13,38 @@ const renderMergedProps = (component, source, ...rest) => {
   );
 }
 
-const SourceRoute = ({ component, source, ...rest }) => {
+const SourceRoute = ({ component, source, location, ...rest }) => {
+
+  const params = new URLSearchParams(location.search);
+  let urlSource = params.get("source");
+  let urlSearch = params.get("search");
+
   return (
     <Route {...rest} render={routeProps => {
-      return source ? (
-        renderMergedProps(component, source, routeProps, rest)
-      ) : (
-        <Redirect to={{
-          pathname: '/load',
-          state: { from: routeProps.location }
-        }}/>
-      );
+      if (source !== undefined) {
+
+        return (renderMergedProps(component, source, routeProps, rest))
+
+      } else if (urlSource !== null) {
+
+        return (
+          <Redirect to={{
+            pathname: '/load',
+            search: `?source=${urlSource}`,
+            state: { from: routeProps.location },
+          }}/>
+        )
+
+      } else {
+
+        return (
+          <Redirect to={{
+            pathname: '/load',
+            state: { from: routeProps.location },
+          }}/>
+        )
+
+      }
     }}/>
   );
 };

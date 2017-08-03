@@ -82,13 +82,15 @@ class VariantRow extends React.Component {
 
       fetch(url)
         .then(response => response.json())
-        .then(data => data.hits
-          .map(hit => {
-            if (hit._id === `chr${chr}:g.${pos}${ref}>${alt}`) {
-              this.setState({myVariantInfo : hit});
-            }
-          })
-        );
+        .then(data => {
+          if (data.hits !== undefined) {
+            data.hits.map(hit => {
+              if (hit._id === `chr${chr}:g.${pos}${ref}>${alt}`) {
+                this.setState({myVariantInfo : hit});
+              }
+            })
+          }
+        });
     }
   }
 
@@ -137,7 +139,6 @@ class VariantRow extends React.Component {
     );
   }
 }
-
 
 
 

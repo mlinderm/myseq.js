@@ -73,7 +73,7 @@ class Settings extends React.Component {
             Change the reference genome. Generally you should not need to
             manually set the reference genome. MySeq will infer the reference
             for you. However, there may be corner cases that require you to
-            override MySeq's shoice.
+            override MySeq's choice.
 
           </HelpBlock>
         </FormGroup>

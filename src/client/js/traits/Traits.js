@@ -85,14 +85,17 @@ class Traits extends React.Component {
           </ul>
         </Col>
         <Col sm={9}>
-          {routes.map((route, index) => (
-            <Route
-              key={index}
-              path={route.path}
-              exact={route.exact}
-              render={route.main}
-            />
-          ))}
+          <Switch>
+            {routes.map((route, index) => (
+              <Route
+                key={index}
+                path={route.path}
+                exact={route.exact}
+                render={route.main}
+              />
+            ))}
+            <Route render= {() => <h1>404: Trait Not Found</h1>}/>
+          </Switch>
         </Col>
       </Row>
     );

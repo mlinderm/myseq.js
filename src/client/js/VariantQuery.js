@@ -144,6 +144,20 @@ class VariantQuery extends React.Component {
     }
   }
 
+  componentDidMount() {
+    // Initialize search if included in the URL
+    // http://localhost:3000/query?source=http%3A%2F%2Fwww.cs.middlebury.edu%2F~mlinderman%2Fmyseq%2FNA12878_GIAB_highconf_CG-IllFB-IllGATKHC-Ion-Solid-10X_CHROM1-X_v3.3_highconf.vcf.gz
+
+    const params = new URLSearchParams(this.props.location.search);
+    let query = params.get("search");
+
+    if (query !== null) {
+      let decodedURL = decodeURIComponent(query);
+      this.handleCoordinateQuery(decodedURL);
+    }
+
+  }
+
   render() {
     return (
       <div>

@@ -122,6 +122,39 @@ class LoadVCFFile extends React.Component {
     this._createAndUpdateSourceFromURL(url, url + ".tbi", reference);
   }
 
+	componentDidMount() {
+    // TODO: Initialize source if included in the URL
+		// http://localhost:3000/query?source=http%3A%2F%2Fwww.cs.middlebury.edu%2F~mlinderman%2Fmyseq%2FNA12878_GIAB_highconf_CG-IllFB-IllGATKHC-Ion-Solid-10X_CHROM1-X_v3.3_highconf.vcf.gz
+
+		const params = new URLSearchParams(this.props.location.search);
+		let source = params.get("source");
+
+		if (source !== null) {
+			let decodedURL = decodeURIComponent(source);
+			this._createAndUpdateSourceFromURL(decodedURL, decodedURL + ".tbi");
+		}
+
+	}
+	// const currentPath = this.props.location.pathname;
+	// console.log("currentPath");
+	// console.log(currentPath);
+
+	// const source = this.props.match.params.source;
+	// console.log("source");
+	// console.log(source);
+
+	// if (currentPath.includes("/source")) {
+	// 	// let index = currentPath.indexOf("/source") + 8;
+	// 	// let source = currentPath.slice(index)
+	// 	const source = this.props.match.params.source;
+	//
+	// 	console.log(source);
+	// 	let decodedURL = decodeURIComponent(source);
+	// 	// console.log(decodedURL);
+	//
+	// 	this._createAndUpdateSourceFromURL(decodedURL, decodedURL + ".tbi");
+	// }
+
 	render(): any {
     if (this.state.redirectToReferrer) {
       const { from } = this.props.location.state || { from: { pathname: '/' } }

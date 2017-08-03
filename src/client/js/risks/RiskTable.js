@@ -178,7 +178,7 @@ class RiskTable extends React.Component {
             )}
           </tbody>
         </Table>
-        { this.props.children }
+        { this.props.description }
 
         <br/>
 
