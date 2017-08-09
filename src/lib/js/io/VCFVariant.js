@@ -62,7 +62,7 @@ class VCFVariant {
 				.then(response => response.json())
 				.then(data => data.hits
 					.map(hit => {if (hit._id === `chr${chr}:g.${pos}${ref}>${alt}`) { this.variantInfo = hit; } })
-				);
+				)
 		}
 	}
 

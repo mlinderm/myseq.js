@@ -266,7 +266,7 @@ RiskTable.propTypes = {
   source: PropTypes.instanceOf(VCFSource).isRequired,
   riskVariants: PropTypes.array.isRequired,
   preRisk: PropTypes.number.isRequired,
-  children: PropTypes.element
+  description: PropTypes.string
 };
 
 export default RiskTable;

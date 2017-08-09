@@ -3411,9 +3411,37 @@ const hg38SeqDict =  {
     "HLA-DRB1*16:02:01": {LN:11005, M5:"4a972df76bd3ee2857b87bd5be5ea00a"}
 }
 
+const hg38Liftover = {
+    MT: "chrM",
+    '1': "chr1",
+    '2': "chr2",
+    '3': "chr3",
+    '4': "chr4",
+    '5': "chr5",
+    '6': "chr6",
+    '7': "chr7",
+    '8': "chr8",
+    '9': "chr9",
+    '10': "chr10",
+    '11': "chr11",
+    '12': "chr12",
+    '13': "chr13",
+    '14': "chr14",
+    '15': "chr15",
+    '16': "chr16",
+    '17': "chr17",
+    '18': "chr18",
+    '19': "chr19",
+    '20': "chr20",
+    '21': "chr21",
+    '22': "chr22",
+    X: "chrX",
+    Y: "chrY"
+}
+
 class Hg38Reference extends ReferenceGenome {
   constructor() {
-    super("hg38", true, hg38SeqDict, liftToHg19); //TODO: do we want this lift?
+    super("hg38", true, hg38SeqDict, hg38Liftover); //TODO: do we want this lift?
   }
 }
 
@@ -3678,7 +3706,7 @@ const hg38Reference = new Hg38Reference();
 const fileNamesToRef = {
   "human_g1k_v37.fasta" : b37Reference,
   "ucsc.hg19.fasta" : hg19Reference,
-  "": hg38Reference //TODO: fill in name
+  "hg38" : hg38Reference //TODO: fill in name
 };
 
 const references = [

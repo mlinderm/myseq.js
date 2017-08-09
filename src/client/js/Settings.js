@@ -40,6 +40,7 @@ class Settings extends React.Component {
 
   render() {
     const { settings, updateSettings } = this.props;
+    
     return(
       <Form>
         <FormGroup>
@@ -65,6 +66,7 @@ class Settings extends React.Component {
               <FormControl componentClass="select" value={ this.state.reference } onChange={ this.handleReferenceChange }>
                 <option value="hg19">Human (hg19)</option>
                 <option value="b37">Human (b37)</option>
+                <option value="hg38">Human (hg38)</option>
               </FormControl>
             </Col>
           </Row>

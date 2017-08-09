@@ -65,7 +65,7 @@ class App extends React.Component {
 
 	render(): any {
     const { source, settings } = this.state;
-    // console.log(this.state.source);
+
     return (
       <BrowserRouter>
         <main>
@@ -77,8 +77,6 @@ class App extends React.Component {
               <Route path='/load' exact render={ rp =>
                 <LoadVCFFile {...rp} updateSource={ this.updateSource } />
               } />
-
-
               <SourceRoute path='/settings' exact component={Settings}
                 source={source}
                 settings={settings}
@@ -98,10 +96,6 @@ class App extends React.Component {
 	}
 
 }
-
-// <Route path='/load/source/:source' exact render={ rp =>
-//   <LoadVCFFile {...rp} updateSource={ this.updateSource } />
-// } />
 
 function create(elOrId: string|Element) {
 	var el = typeof(elOrId) == 'string' ? document.getElementById(elOrId) : elOrId;

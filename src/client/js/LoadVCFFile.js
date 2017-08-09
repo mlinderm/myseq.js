@@ -12,7 +12,7 @@ import { Modal, Row, Col, Form, FormGroup, FormControl, ControlLabel, Button, He
 import { LocalFileReader, RemoteFileReader } from '../../lib/js/io/FileReaders-browser';
 import TabixIndexedFile from '../../lib/js/io/TabixIndexedFile';
 import VCFSource from '../../lib/js/io/VCFSource';
-import { ReferenceGenome, hg19Reference, b37Reference } from '../../lib/js/features/ReferenceGenome';
+import { ReferenceGenome, hg19Reference, b37Reference, hg38Reference } from '../../lib/js/features/ReferenceGenome';
 
 class VCFLink extends React.Component {
 	constructor(props) {
@@ -204,9 +204,19 @@ class LoadVCFFile extends React.Component {
               </strong>
             </Col>
             <Col sm={10}>
-              Genome-in-a-Bottle high confidence calls for NA12878
+              Genome-in-a-Bottle high confidence calls for NA12878. Build b37.
             </Col>
           </Row>
+					<Row>
+						<Col sm={2} className={"text-right"}>
+							<strong>
+								<VCFLink url={"http://www.cs.middlebury.edu/~mlinderman/myseq/NA12878.vcf.gz"} reference={hg38Reference} name={"NA12878"} updateAndSubmitURL={this.updateAndSubmitURL} />
+							</strong>
+						</Col>
+						<Col sm={10}>
+							Genome-in-a-Bottle high confidence calls for NA12878. Build hg38.
+						</Col>
+					</Row>
           <Row>
             <Col sm={2} className={"text-right"}>
               <strong>Testing</strong>
