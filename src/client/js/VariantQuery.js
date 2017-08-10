@@ -161,19 +161,21 @@ class VariantQuery extends React.Component {
       }
     }
 
-    const sortUniqueVariants = values => {
-      let uniqueVariant = [];
-      let uniqueIndices = [];
-
-      values.forEach((value, index) => {
-        if (uniqueVariant.indexOf(value.toString()) === -1) {
-          uniqueVariant.push(value.toString());
-          uniqueIndices.push(index);
-        }
-      });
-
-      return uniqueIndices;
-    }
+    //not needed now that mergeSearches works correctly
+    
+    // const sortUniqueVariants = values => {
+    //   let uniqueVariant = [];
+    //   let uniqueIndices = [];
+    //
+    //   values.forEach((value, index) => {
+    //     if (uniqueVariant.indexOf(value.toString()) === -1) {
+    //       uniqueVariant.push(value.toString());
+    //       uniqueIndices.push(index);
+    //     }
+    //   });
+    //
+    //   return uniqueIndices;
+    // }
 
     const mergeSearches = searches => {
       let chrList = {};
@@ -252,41 +254,34 @@ class VariantQuery extends React.Component {
           .then(results => Promise.all(mergeSearches(results)
             .map(result => this.handleCoordinateQuery(result, true))
           )).then(result => flatten(result))
-              .then(result => {
-                let unique = sortUniqueVariants(result);
-
-                return unique.map(value => result[value])
-              })
-                .then(result => this.setState({
-                  variants : result,
-                  validation: null,
-                  helpMessage: 'Query by genomic coordinates, e.g. chr1:1-100, chr7:141672604-141672604, chr4:1-100000',
-                  region: searchRegion})
-                  ,
-                  err => {
-                    this.setState({
-                      validation: 'error',
-                      helpMessage: err.message,
-                      variants: [],
-                      region: searchRegion
-                    });
-                  }
-                );
+              .then(result => this.setState({
+                variants : result,
+                validation: null,
+                helpMessage: 'Query by genomic coordinates, e.g. chr1:1-100, chr7:141672604-141672604, chr4:1-100000',
+                region: searchRegion})
+                ,
+                err => {
+                  this.setState({
+                    validation: 'error',
+                    helpMessage: err.message,
+                    variants: [],
+                    region: searchRegion
+                  });
+                }
+              );
     } else if (searches.length === 1) {
 
       if (searchRegion.slice(0,2) === "rs") { //search by rsid
         let query = this.translateRSID(searchRegion);
 
-        Promise.resolve(query)
-          .then(search => flatten(search).filter(search => search !== undefined))
-            .then(query => this.handleCoordinateQuery(query[0], multiple));
+        query.then(search => flatten(search).filter(search => search !== undefined))
+          .then(query => this.handleCoordinateQuery(query[0], multiple));
 
       } else if (searchRegion[0] === searchRegion[0].toUpperCase() && searchRegion.indexOf(":") === -1) {//no : and uppercase start imagine it is gene name, make sure human
         let query = this.translateGeneName(searchRegion, genomeBuild);
 
-        Promise.resolve(query)
-          .then(search => flatten(search).filter(search => search !== undefined))
-            .then(query => this.handleCoordinateQuery(query[0], multiple));
+        query.then(search => flatten(search).filter(search => search !== undefined))
+          .then(query => this.handleCoordinateQuery(query[0], multiple));
 
       } else { //regular query
         var coords = searchRegion.trim().split(/[:-]/, 3);
