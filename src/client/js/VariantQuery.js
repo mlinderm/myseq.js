@@ -63,6 +63,7 @@ class VariantQuery extends React.Component {
     super(props);
     this.state = {
       region: undefined,
+      original: undefined,
       validation: null,
       helpMessage: 'Query by genomic coordinates, e.g. chr1:1-100, chr7:141672604-141672604, chr4:1-100000',
       variants: [],
@@ -147,7 +148,9 @@ class VariantQuery extends React.Component {
     }
   }
 
-  handleCoordinateQuery(searchRegion, multiple = false) {
+  handleCoordinateQuery(searchRegion, multiple = false, translationBoolean = false) {
+    this.setState({translation: translationBoolean});
+
     //helper functions
     const scalar = v => !Array.isArray(v);
 
@@ -162,7 +165,7 @@ class VariantQuery extends React.Component {
     }
 
     //not needed now that mergeSearches works correctly
-    
+
     // const sortUniqueVariants = values => {
     //   let uniqueVariant = [];
     //   let uniqueIndices = [];
@@ -178,8 +181,6 @@ class VariantQuery extends React.Component {
     // }
 
     const mergeSearches = searches => {
-      let chrList = {};
-
       const coordinates = search => search.trim().split(/[:-]/, 3);
 
       let coordSearches = searches
@@ -191,6 +192,7 @@ class VariantQuery extends React.Component {
         return search
       })
 
+      let chrList = {};
       coordSearches.forEach(search => {
         let chr = (search[0].slice(0,3) === "chr") ? search[0].slice(3) : search[0];
 
@@ -250,15 +252,32 @@ class VariantQuery extends React.Component {
       });
 
       Promise.all(translations)
-        .then(search => flatten(search).filter(search => search !== undefined))
-          .then(results => Promise.all(mergeSearches(results)
-            .map(result => this.handleCoordinateQuery(result, true))
-          )).then(result => flatten(result))
+        .then(search => flatten(search).filter(search => search !== undefined),
+        err => {
+          this.setState({
+            validation: 'error',
+            helpMessage: err.message,
+            variants: [],
+            region: searchRegion
+          });
+        })
+          .then(results => {
+            let searchRegionDisplay = mergeSearches(results).join(", ");
+
+            this.setState({
+              translation: true,
+              original: searchRegion,
+              region: searchRegionDisplay
+            }); //can be original search with searchRegion or merged positional search with searchRegionDisplay
+
+            return Promise.all(mergeSearches(results).map(result => this.handleCoordinateQuery(result, true, true)))
+          })
+            .then(result => flatten(result))
               .then(result => this.setState({
                 variants : result,
                 validation: null,
-                helpMessage: 'Query by genomic coordinates, e.g. chr1:1-100, chr7:141672604-141672604, chr4:1-100000',
-                region: searchRegion})
+                helpMessage: 'Query by genomic coordinates, e.g. chr1:1-100, chr7:141672604-141672604, chr4:1-100000'
+              })
                 ,
                 err => {
                   this.setState({
@@ -272,16 +291,45 @@ class VariantQuery extends React.Component {
     } else if (searches.length === 1) {
 
       if (searchRegion.slice(0,2) === "rs") { //search by rsid
+        this.setState({original: searchRegion});
         let query = this.translateRSID(searchRegion);
 
         query.then(search => flatten(search).filter(search => search !== undefined))
-          .then(query => this.handleCoordinateQuery(query[0], multiple));
+          .then(query => {
+
+            if (query.length === 0) {
+              console.log("yippy")
+              this.setState({
+                validation: 'error',
+                helpMessage: 'Invalid rsID.',
+                variants: [],
+                region: searchRegion
+              })
+            } else {
+              return this.handleCoordinateQuery(query[0], multiple, true)
+            }
+          });
 
       } else if (searchRegion[0] === searchRegion[0].toUpperCase() && searchRegion.indexOf(":") === -1) {//no : and uppercase start imagine it is gene name, make sure human
+        this.setState({original: searchRegion});
+
         let query = this.translateGeneName(searchRegion, genomeBuild);
 
         query.then(search => flatten(search).filter(search => search !== undefined))
-          .then(query => this.handleCoordinateQuery(query[0], multiple));
+          .then(query => {
+
+            if (query.length === 0) {
+              console.log("yuppy")
+              this.setState({
+                validation: 'error',
+                helpMessage: 'Invalid gene name.',
+                variants: [],
+                region: searchRegion
+              })
+            } else {
+              return this.handleCoordinateQuery(query[0], multiple, true)
+            }
+          });
 
       } else { //regular query
         var coords = searchRegion.trim().split(/[:-]/, 3);
@@ -292,12 +340,23 @@ class VariantQuery extends React.Component {
         }
 
         if (multiple === false) {
-          this.setState({ region: searchRegion });
+
+          if (!this.state.translation) {
+            this.setState({
+              translation: false,
+              original: undefined,
+              region: searchRegion
+            });
+          } else {
+            this.setState({
+              region: searchRegion
+            });
+          }
 
           this.props.source.variants(coords[0], parseInt(coords[1]), parseInt(coords[2])).then(
             variants => {
               this.setState({
-                variants : variants,
+                variants: variants,
                 validation: null,
                 helpMessage: 'Query by genomic coordinates, e.g. chr1:1-100, chr7:141672604-141672604, chr4:1-100000'});
             },
@@ -342,7 +401,8 @@ class VariantQuery extends React.Component {
         <CoordinateSearchBox handleCoordinateQuery={this.handleCoordinateQuery} validation={this.state.validation} helpMessage={this.state.helpMessage} />
         {this.state.region &&
           <Row>
-            <Col sm={6}>
+            <Col sm={6} lg={8}>
+              {this.state.translation && <p>{this.state.original} transformed into {this.state.region}</p>}
               <p>Listing {this.state.variants.length} variants in {this.state.region}</p>
               <VariantTable variants={this.state.variants} referenceGenome={this.state.referenceGenome}/>
             </Col>

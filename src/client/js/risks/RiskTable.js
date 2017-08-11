@@ -16,6 +16,7 @@ class RiskTable extends React.Component {
 
     this.state = {
       postTestRisk : 0,
+      referenceGenome: undefined,
 
       data : this.props.riskVariants.map( (variant, index) => {return ({
         GT: undefined,
@@ -29,59 +30,66 @@ class RiskTable extends React.Component {
   }
 
   componentDidMount() {
+    this.props.source.reference().then(ref => {
+      this.setState({ referenceGenome: ref.shortName });
+    }).then( () => {
+      const { sample, assumeRefRef } = this.props.settings;
+      let allVariants = Q.all(this.props.riskVariants.map(variant => {
+        let query = variant.variant;
+        
+        // Return promise for individual query variant
+        return this.props.source.variant(
+          (this.state.referenceGenome === "hg38") ? query.hg38.chr : query.hg19.chr,
+          (this.state.referenceGenome === "hg38") ? query.hg38.chr : query.hg19.pos,
+          query.ref,
+          query.alt,
+          assumeRefRef
+        );
+      }));
 
-    const { sample, assumeRefRef } = this.props.settings;
-    let allVariants= Q.all(this.props.riskVariants.map(variant => {
-      let query = variant.variant;
+      allVariants.then(foundVariants => {
+        let localdata = this.state.data;
 
-      // Return promise for individual query variant
-      return this.props.source.variant(
-        query.chr, query.pos, query.ref, query.alt, assumeRefRef
-      );
-    }));
-
-    allVariants.then(foundVariants => {
-      let localdata = this.state.data;
-
-      foundVariants.map((variant, index) => {
-        if (variant) {
-          let gt = variant.genotype(sample);
-          localdata[index] = { GT: gt, LR: this.props.riskVariants[index].LR[gt], cumalitiveLR: undefined, label: localdata[index].label, position: localdata[index].position};
-        }
-      });
-
-      //sort local data
-      localdata.sort((a, b) => {
-        if (a.LR == undefined) {
-          return 1;
-        } else if (b.LR == undefined) {
-          return -1;
-        } else {
-          var distance1 = Math.abs(1 - a.LR);
-          var distance2 = Math.abs(1 - b.LR);
-
-          return distance1 == distance2 ? 0 : (distance1 > distance2 ? 1 : -1);
-        }
-      });
-
-      //calculate cumalitiveLR
-      let cumalitiveLRTemp = new Array(localdata.length).fill(undefined);
-
-      localdata = localdata.map((entry,index) =>{
-        if (entry.LR != undefined) {
-          if (index == 0) {
-            cumalitiveLRTemp[index] = entry.LR;
-            this.setState({postTestRisk : entry.LR});
-          } else {
-            cumalitiveLRTemp[index] = cumalitiveLRTemp[index-1] * entry.LR;
-            this.setState({postTestRisk : cumalitiveLRTemp[index-1] * entry.LR});
+        foundVariants.map((variant, index) => {
+          if (variant) {
+            let gt = variant.genotype(sample);
+            localdata[index] = { GT: gt, LR: this.props.riskVariants[index].LR[gt], cumalitiveLR: undefined, label: localdata[index].label, position: localdata[index].position};
           }
-        }
+        });
 
-        return ({GT: entry.GT, LR: entry.LR, cumalitiveLR: cumalitiveLRTemp[index], label: entry.label, position: entry.position})
+        //sort local data
+        localdata.sort((a, b) => {
+          if (a.LR == undefined) {
+            return 1;
+          } else if (b.LR == undefined) {
+            return -1;
+          } else {
+            var distance1 = Math.abs(1 - a.LR);
+            var distance2 = Math.abs(1 - b.LR);
+
+            return distance1 == distance2 ? 0 : (distance1 > distance2 ? 1 : -1);
+          }
+        });
+
+        //calculate cumalitiveLR
+        let cumalitiveLRTemp = new Array(localdata.length).fill(undefined);
+
+        localdata = localdata.map((entry,index) =>{
+          if (entry.LR != undefined) {
+            if (index == 0) {
+              cumalitiveLRTemp[index] = entry.LR;
+              this.setState({postTestRisk : entry.LR});
+            } else {
+              cumalitiveLRTemp[index] = cumalitiveLRTemp[index-1] * entry.LR;
+              this.setState({postTestRisk : cumalitiveLRTemp[index-1] * entry.LR});
+            }
+          }
+
+          return ({GT: entry.GT, LR: entry.LR, cumalitiveLR: cumalitiveLRTemp[index], label: entry.label, position: entry.position})
+        })
+
+        this.setState({ data : localdata });
       })
-
-      this.setState({ data : localdata });
     })
   }
 

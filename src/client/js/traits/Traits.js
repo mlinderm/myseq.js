@@ -15,7 +15,7 @@ import VCFSource from '../../../lib/js/io/VCFSource';
 const traitsData = {
   asparagus : {
     title: "Asparagus Anosmia",
-    variant: { chr: 1, pos: 248496863, ref: "T", alt: "C" },
+    variant: { hg19: {chr: 1, pos: 248496863}, hg38: {chr: 1, pos: 248333561}, ref: "T", alt: "C" },
     association: [
       { genotype: "T/T", phenotype: "Most likely to smell asparagus metabolites in urine" },
       { genotype: ["T/C", "C/T"], phenotype: "More likely to smell asparagus metabolites in urine" },
@@ -25,7 +25,7 @@ const traitsData = {
   },
   earwax : {
     title: "Earwax Consistency",
-    variant: { chr: 16, pos: 48258198, ref: "C", alt: "T"},
+    variant: { hg19: {chr: 16, pos: 48258198}, hg38: {chr: 16, pos: 48224287}, ref: "C", alt: "T"},
     association: [
       { genotype: "C/C", phenotype: "Wet earwax" },
       { genotype: ["C/T","T/C"], phenotype: "Wet earwax" },
@@ -41,7 +41,7 @@ const traitsData = {
   },
   sprinting : {
     title: "Sprinting Performance",
-    variant: { chr: 11, pos: 66328095, ref: "T", alt: "C"},
+    variant: { hg19: {chr: 11, pos: 66328095}, hg38: {chr: 11, pos: 66560624}, ref: "T", alt: "C"},
     association: [
       { genotype: "C/C", phenotype: "Likely a sprinter" },
       { genotype: ["T/C","C/T"], phenotype: "Likely a sprinter" },
@@ -54,6 +54,16 @@ const traitsData = {
 class Traits extends React.Component {
   constructor(props) {
     super(props);
+
+    this.state = {
+      referenceGenome: undefined
+    };
+  }
+
+  componentDidMount() {
+    this.props.source.reference().then(ref => {
+      this.setState({ referenceGenome: ref.shortName });
+    });
   }
 
   render() {
