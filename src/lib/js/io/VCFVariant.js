@@ -74,7 +74,7 @@ class VCFVariant {
    * If no sample is specified, return the 1st genotype
    */
 	genotype(sample: string): string {
-    return sample == undefined ? this._genotypes.values().next().value : this._genotypes.get(sample);
+    return sample === undefined ? this._genotypes.values().next().value : this._genotypes.get(sample);
 	}
 
 }

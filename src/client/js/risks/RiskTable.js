@@ -36,7 +36,7 @@ class RiskTable extends React.Component {
       const { sample, assumeRefRef } = this.props.settings;
       let allVariants = Q.all(this.props.riskVariants.map(variant => {
         let query = variant.variant;
-        
+
         // Return promise for individual query variant
         return this.props.source.variant(
           (this.state.referenceGenome === "hg38") ? query.hg38.chr : query.hg19.chr,

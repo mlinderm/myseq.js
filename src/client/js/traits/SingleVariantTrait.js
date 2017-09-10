@@ -31,9 +31,7 @@ class SingleVariantTrait extends React.Component {
     const query = this.props.trait.variant;
 
     this.props.source.reference().then(ref => {
-      console.log("testy");
       this.setState({ referenceGenome: ref.shortName });
-
     }).then( () => {
       this.props.source.variant(
         (this.state.referenceGenome === "hg38") ? query.hg38.chr : query.hg19.chr,

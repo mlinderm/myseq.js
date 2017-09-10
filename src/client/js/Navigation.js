@@ -7,10 +7,12 @@ import React from 'react';
 import PropTypes from 'prop-types';
 
 import { Link } from 'react-router-dom';
-import { Navbar, Nav, NavItem, NavDropdown, MenuItem, Form, FormGroup, ControlLabel, FormControl } from 'react-bootstrap';
+import { Grid, Row, Col, Navbar, Nav, NavItem, NavDropdown, MenuItem, Form, FormGroup, ControlLabel, FormControl } from 'react-bootstrap';
 import { LinkContainer } from 'react-router-bootstrap';
 
 import VCFSource from '../../lib/js/io/VCFSource';
+
+//import logo from './mySeqLogo.png'; TODO
 
 class Navigation extends React.Component {
   constructor(props) {
@@ -48,13 +50,17 @@ class Navigation extends React.Component {
   render(): any {
     const { settings } = this.props;
     const { samples } = this.state;
-
+    //TODO Fix logo image.
     return (
+
       <Navbar>
         <Navbar.Header>
-          <Navbar.Brand>
-            <Link to='/'>MySeq</Link>
-          </Navbar.Brand>
+          <LinkContainer to="/" style={{ cursor: 'pointer' }}>
+            <Navbar.Brand>
+              <img  src={"http://www.cs.middlebury.edu/~mlinderman/myseq/personalizing_genomics_education_badge.png"} style={{ height:25, float:'left', marginRight:10 }}/>
+              <span style={{ width: 95 }}>MySeq</span>
+            </Navbar.Brand>
+          </LinkContainer>
         </Navbar.Header>
         <Nav>
           <LinkContainer to="/load">
@@ -69,6 +75,9 @@ class Navigation extends React.Component {
             </LinkContainer>
             <LinkContainer to="/risks">
               <MenuItem eventKey={1.3}>Common Disease Risk</MenuItem>
+            </LinkContainer>
+            <LinkContainer to="/ancestry">
+              <MenuItem eventKey={1.4}>Ancestry Analysis</MenuItem>
             </LinkContainer>
           </NavDropdown>
           <LinkContainer to="/settings">
